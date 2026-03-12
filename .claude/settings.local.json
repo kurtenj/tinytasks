@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(claude-api)",
+      "Skill(claude-api:*)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --yes)",
+      "Read(//c/Users/Jonathan/Workspace/**)",
+      "Bash(npx create-next-app@latest tinytasks-setup --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --yes)",
+      "Bash(npm install convex framer-motion canvas-confetti @radix-ui/react-dialog @radix-ui/react-progress @radix-ui/react-avatar lucide-react class-variance-authority clsx tailwind-merge)",
+      "Bash(npm install -D @types/canvas-confetti)",
+      "Bash(npx shadcn@latest init -d)"
+    ]
+  }
+}
