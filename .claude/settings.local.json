@@ -12,7 +12,8 @@
       "Bash(npx shadcn@latest add card dialog progress badge avatar toast -y)",
       "Bash(npx shadcn@latest add card dialog progress badge avatar sonner -y)",
       "Bash(npx tsc --noEmit)",
-      "WebFetch(domain:animations.dev)"
+      "WebFetch(domain:animations.dev)",
+      "Bash(node -e \"const l = require\\(''C:/Users/Jonathan/Workspace/tinytasks/node_modules/lucide-react''\\); console.log\\(''Pencil:'', !!l.Pencil, ''UserPlus:'', !!l.UserPlus, ''Edit2:'', !!l.Edit2\\)\")"
     ]
   }
 }

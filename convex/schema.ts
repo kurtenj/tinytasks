@@ -18,6 +18,9 @@ export default defineSchema({
     isActive: v.boolean(),
     createdBy: v.id("users"),
     order: v.number(),
+    scheduleType: v.optional(v.union(v.literal("repeating"), v.literal("floating"))),
+    daysOfWeek:   v.optional(v.array(v.number())),
+    assignedTo:   v.optional(v.array(v.id("users"))),
   }),
   completions: defineTable({
     choreId: v.id("chores"),

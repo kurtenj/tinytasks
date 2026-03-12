@@ -86,7 +86,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
 
   const user         = useQuery(api.users.get, { id: userId });
   const allUsers     = useQuery(api.users.list);
-  const chores       = useQuery(api.chores.list);
+  const chores       = useQuery(api.chores.listForKid, { userId });
   const completions  = useQuery(api.completions.getTodayForUser, { userId });
   const todayOpen    = useQuery(api.treasureOpens.getTodayForUser, { userId });
   const complete     = useMutation(api.completions.complete);

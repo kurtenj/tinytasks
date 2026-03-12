@@ -3,12 +3,14 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { motion } from "framer-motion";
-import type { Id } from "../../convex/_generated/dataModel";
-import { Plus, Trash2, LogOut, RotateCcw, Gift, CheckSquare, Users } from "lucide-react";
+import type { Doc, Id } from "../../convex/_generated/dataModel";
+import { Plus, Trash2, LogOut, RotateCcw, Gift, CheckSquare, Users, UserPlus, Pencil } from "lucide-react";
 import { AddChoreDialog } from "@/components/AddChoreDialog";
 import { AddRewardDialog } from "@/components/AddRewardDialog";
 
-type Tab = "chores" | "rewards" | "progress";
+type Tab = "chores" | "rewards" | "progress" | "kids";
+
+const DAY_ABBREVS = ["Su", "M", "T", "W", "Th", "F", "Sa"];
 
 interface AdminDashboardProps {
   userId: Id<"users">;
@@ -16,27 +18,52 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
-  const [tab, setTab] = useState<Tab>("chores");
-  const [showAddChore, setShowAddChore] = useState(false);
+  const [tab,           setTab]          = useState<Tab>("chores");
+  const [showAddChore,  setShowAddChore]  = useState(false);
   const [showAddReward, setShowAddReward] = useState(false);
+  const [editingChore,  setEditingChore]  = useState<Doc<"chores"> | null>(null);
 
-  const chores = useQuery(api.chores.listAll);
-  const rewards = useQuery(api.rewards.listAll);
-  const kids = useQuery(api.users.getKids);
+  // Kids state
+  const [newKidName,     setNewKidName]     = useState("");
+  const [renamingKidId,  setRenamingKidId]  = useState<Id<"users"> | null>(null);
+  const [renameValue,    setRenameValue]    = useState("");
+
+  const chores          = useQuery(api.chores.listAll);
+  const rewards         = useQuery(api.rewards.listAll);
+  const kids            = useQuery(api.users.getKids);
   const todayCompletions = useQuery(api.completions.getTodayAll);
-  const removeChore = useMutation(api.chores.remove);
+
+  const removeChore  = useMutation(api.chores.remove);
   const removeReward = useMutation(api.rewards.remove);
-  const resetDay = useMutation(api.completions.resetDay);
-  const updateChore = useMutation(api.chores.update);
+  const resetDay     = useMutation(api.completions.resetDay);
+  const updateChore  = useMutation(api.chores.update);
+  const createUser   = useMutation(api.users.create);
+  const renameKid    = useMutation(api.users.rename);
+  const removeKid    = useMutation(api.users.remove);
 
   const completedChoreIds = new Set(todayCompletions?.map((c) => c.choreId) ?? []);
   const getKidCompletions = (kidId: Id<"users">) =>
     todayCompletions?.filter((c) => c.userId === kidId).length ?? 0;
 
+  const handleAddKid = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newKidName.trim()) return;
+    await createUser({ name: newKidName.trim(), role: "kid" });
+    setNewKidName("");
+  };
+
+  const handleRenameKid = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!renameValue.trim() || !renamingKidId) return;
+    await renameKid({ id: renamingKidId, name: renameValue.trim() });
+    setRenamingKidId(null);
+  };
+
   const TABS = [
     { id: "chores",   icon: CheckSquare, label: "Chores"   },
     { id: "rewards",  icon: Gift,        label: "Rewards"  },
     { id: "progress", icon: Users,       label: "Progress" },
+    { id: "kids",     icon: UserPlus,    label: "Kids"     },
   ] as const;
 
   return (
@@ -71,7 +98,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                 }`}
               >
                 <Icon className="w-4 h-4" />
-                {label}
+                <span className="hidden sm:inline">{label}</span>
               </button>
             ))}
           </div>
@@ -79,7 +106,8 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Chores Tab */}
+
+        {/* ── Chores Tab ── */}
         {tab === "chores" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="flex justify-between items-center mb-4">
@@ -98,17 +126,37 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                   className={`bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 flex items-center gap-3 ${!chore.isActive ? "opacity-50" : ""}`}
                 >
                   {chore.icon && <span className="text-2xl">{chore.icon}</span>}
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <p className="font-medium text-stone-950">{chore.title}</p>
                     {chore.description && <p className="text-sm text-stone-400">{chore.description}</p>}
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                      {chore.scheduleType === "repeating" ? (
+                        <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200">
+                          🔁 {chore.daysOfWeek && chore.daysOfWeek.length > 0
+                            ? chore.daysOfWeek.map((d) => DAY_ABBREVS[d]).join(" ")
+                            : "every day"}
+                        </span>
+                      ) : chore.scheduleType === "floating" ? (
+                        <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200">
+                          🌊 floating
+                        </span>
+                      ) : null}
+                      {chore.assignedTo && chore.assignedTo.length > 0 && (
+                        <span className="text-xs bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full border border-amber-200">
+                          {chore.assignedTo.length === 1
+                            ? kids?.find((k) => k._id === chore.assignedTo![0])?.name ?? "1 kid"
+                            : `${chore.assignedTo.length} kids`}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 shrink-0">
                     {completedChoreIds.has(chore._id) && (
                       <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-300">
                         Today ✓
                       </span>
                     )}
-                    <label className="flex items-center gap-1 text-xs text-stone-500 cursor-pointer">
+                    <label className="flex items-center gap-1 text-xs text-stone-500 cursor-pointer px-1">
                       <input
                         type="checkbox"
                         checked={chore.isActive}
@@ -117,7 +165,16 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                       />
                       Active
                     </label>
-                    <button onClick={() => removeChore({ id: chore._id })} className="text-stone-300 hover:text-red-500 p-1 transition-colors">
+                    <button
+                      onClick={() => setEditingChore(chore)}
+                      className="text-stone-300 hover:text-stone-700 p-1 transition-colors"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => removeChore({ id: chore._id })}
+                      className="text-stone-300 hover:text-red-500 p-1 transition-colors"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -133,7 +190,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
           </motion.div>
         )}
 
-        {/* Rewards Tab */}
+        {/* ── Rewards Tab ── */}
         {tab === "rewards" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="flex justify-between items-center mb-4">
@@ -158,9 +215,9 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                     <p className="font-medium text-stone-950">{reward.title}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className={`text-xs px-2 py-0.5 rounded-full border ${
-                        reward.rarity === "epic" ? "bg-amber-100 text-amber-700 border-amber-300" :
-                        reward.rarity === "rare" ? "bg-stone-100 text-stone-600 border-stone-300" :
-                                                   "bg-emerald-100 text-emerald-700 border-emerald-300"
+                        reward.rarity === "epic"   ? "bg-amber-100 text-amber-700 border-amber-300" :
+                        reward.rarity === "rare"   ? "bg-stone-100 text-stone-600 border-stone-300" :
+                                                     "bg-emerald-100 text-emerald-700 border-emerald-300"
                       }`}>
                         {reward.rarity}
                       </span>
@@ -182,7 +239,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
           </motion.div>
         )}
 
-        {/* Progress Tab */}
+        {/* ── Progress Tab ── */}
         {tab === "progress" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <h2 className="font-semibold text-stone-950 mb-4">Today&apos;s Progress</h2>
@@ -217,9 +274,88 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
             </div>
           </motion.div>
         )}
+
+        {/* ── Kids Tab ── */}
+        {tab === "kids" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <h2 className="font-semibold text-stone-950 mb-4">Kids ({kids?.length ?? 0})</h2>
+
+            {/* Add kid form */}
+            <form onSubmit={handleAddKid} className="flex gap-2 mb-4">
+              <input
+                value={newKidName}
+                onChange={(e) => setNewKidName(e.target.value)}
+                placeholder="Kid's name"
+                className="flex-1 border-2 border-stone-950 rounded-xl px-4 py-2.5 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-stone-950"
+              />
+              <button
+                type="submit"
+                disabled={!newKidName.trim()}
+                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2.5 px-3 rounded-xl hover:bg-stone-800 active:scale-[0.97] disabled:opacity-50 transition-all"
+              >
+                <Plus className="w-4 h-4" /> Add
+              </button>
+            </form>
+
+            <div className="space-y-2">
+              {kids?.map((kid) => (
+                <div key={kid._id} className="bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 flex items-center gap-3">
+                  <span className="text-2xl">{kid.avatar ?? "🧒"}</span>
+                  <div className="flex-1 min-w-0">
+                    {renamingKidId === kid._id ? (
+                      <form onSubmit={handleRenameKid} className="flex gap-2">
+                        <input
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          className="flex-1 border-2 border-stone-950 rounded-lg px-2 py-1 text-sm focus:outline-none min-w-0"
+                          autoFocus
+                        />
+                        <button type="submit" className="text-xs bg-stone-950 text-white px-2.5 py-1 rounded-lg hover:bg-stone-800 active:scale-[0.97] transition-all">
+                          Save
+                        </button>
+                        <button type="button" onClick={() => setRenamingKidId(null)} className="text-xs text-stone-400 px-1 hover:text-stone-700">
+                          ✕
+                        </button>
+                      </form>
+                    ) : (
+                      <p className="font-medium text-stone-950">{kid.name}</p>
+                    )}
+                    <p className="text-xs text-stone-400 mt-0.5">⭐ {kid.points} pts · Level {kid.level}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => { setRenamingKidId(kid._id); setRenameValue(kid.name); }}
+                      className="text-stone-300 hover:text-stone-700 p-1 transition-colors"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => removeKid({ id: kid._id })}
+                      className="text-stone-300 hover:text-red-500 p-1 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {kids?.length === 0 && (
+                <div className="text-center py-12 text-stone-400">
+                  <div className="text-4xl mb-2">👶</div>
+                  <p>No kids yet. Add one above!</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
       </div>
 
-      {showAddChore && <AddChoreDialog userId={userId} onClose={() => setShowAddChore(false)} />}
+      {(showAddChore || editingChore) && (
+        <AddChoreDialog
+          userId={userId}
+          chore={editingChore ?? undefined}
+          onClose={() => { setShowAddChore(false); setEditingChore(null); }}
+        />
+      )}
       {showAddReward && <AddRewardDialog userId={userId} onClose={() => setShowAddReward(false)} />}
     </div>
   );

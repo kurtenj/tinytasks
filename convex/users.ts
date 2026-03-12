@@ -52,6 +52,28 @@ export const updatePoints = mutation({
   },
 });
 
+export const rename = mutation({
+  args: { id: v.id("users"), name: v.string() },
+  handler: async (ctx, { id, name }) => {
+    await ctx.db.patch(id, { name });
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id("users") },
+  handler: async (ctx, { id }) => {
+    const completions = await ctx.db.query("completions").collect();
+    for (const c of completions.filter((c) => c.userId === id)) {
+      await ctx.db.delete(c._id);
+    }
+    const opens = await ctx.db.query("treasureOpens").collect();
+    for (const o of opens.filter((o) => o.userId === id)) {
+      await ctx.db.delete(o._id);
+    }
+    await ctx.db.delete(id);
+  },
+});
+
 export const updateStreak = mutation({
   args: {
     userId: v.id("users"),
