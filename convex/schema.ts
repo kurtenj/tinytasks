@@ -15,6 +15,8 @@ export default defineSchema({
     title: v.string(),
     description: v.optional(v.string()),
     icon: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    cardColor: v.optional(v.string()),
     isActive: v.boolean(),
     createdBy: v.id("users"),
     order: v.number(),

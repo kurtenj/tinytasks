@@ -5,10 +5,31 @@ import { api } from "../../convex/_generated/api";
 import { motion } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { Plus, Trash2, LogOut, RotateCcw, Gift, CheckSquare, Users, UserPlus, Pencil } from "lucide-react";
+import * as LucideIcons from "lucide-react";
+import { getPresetByFile, DEFAULT_CARD_COLOR } from "@/lib/chorePresets";
 import { AddChoreDialog } from "@/components/AddChoreDialog";
 import { AddRewardDialog } from "@/components/AddRewardDialog";
 
 type Tab = "chores" | "rewards" | "progress" | "kids";
+
+/** Small square showing the chore illustration or Lucide icon fallback */
+function ChoreAvatar({ imageUrl, icon, color }: { imageUrl?: string; icon?: string; color: string }) {
+  const LucideIcon = icon
+    ? (LucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[icon]
+    : undefined;
+  return (
+    <div
+      className="w-10 h-10 rounded-xl shrink-0 flex items-center justify-center overflow-hidden border border-stone-200"
+      style={{ backgroundColor: color }}
+    >
+      {imageUrl ? (
+        <img src={imageUrl} alt="" className="w-full h-full object-contain" />
+      ) : LucideIcon ? (
+        <LucideIcon className="w-5 h-5 text-stone-950/60" />
+      ) : null}
+    </div>
+  );
+}
 
 const DAY_ABBREVS = ["Su", "M", "T", "W", "Th", "F", "Sa"];
 
@@ -125,20 +146,25 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                   key={chore._id}
                   className={`bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 flex items-center gap-3 ${!chore.isActive ? "opacity-50" : ""}`}
                 >
-                  {chore.icon && <span className="text-2xl">{chore.icon}</span>}
+                  <ChoreAvatar
+                    imageUrl={chore.imageUrl}
+                    icon={chore.icon}
+                    color={chore.cardColor ?? getPresetByFile(chore.imageUrl)?.color ?? DEFAULT_CARD_COLOR}
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-stone-950">{chore.title}</p>
                     {chore.description && <p className="text-sm text-stone-400">{chore.description}</p>}
                     <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                       {chore.scheduleType === "repeating" ? (
-                        <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200">
-                          🔁 {chore.daysOfWeek && chore.daysOfWeek.length > 0
+                        <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200 flex items-center gap-1 w-fit">
+                          <LucideIcons.Repeat className="w-3 h-3" />
+                          {chore.daysOfWeek && chore.daysOfWeek.length > 0
                             ? chore.daysOfWeek.map((d) => DAY_ABBREVS[d]).join(" ")
                             : "every day"}
                         </span>
                       ) : chore.scheduleType === "floating" ? (
-                        <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200">
-                          🌊 floating
+                        <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200 flex items-center gap-1 w-fit">
+                          <LucideIcons.Shuffle className="w-3 h-3" /> flexible
                         </span>
                       ) : null}
                       {chore.assignedTo && chore.assignedTo.length > 0 && (
@@ -182,7 +208,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               ))}
               {chores?.length === 0 && (
                 <div className="text-center py-12 text-stone-400">
-                  <div className="text-4xl mb-2">📋</div>
+                  <CheckSquare className="w-10 h-10 mx-auto mb-2 opacity-30" />
                   <p>No chores yet. Add some!</p>
                 </div>
               )}
@@ -208,9 +234,12 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                   key={reward._id}
                   className={`bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 flex items-center gap-3 ${!reward.isActive ? "opacity-50" : ""}`}
                 >
-                  <span className="text-2xl">
-                    {reward.type === "points" ? "⭐" : reward.type === "badge" ? "🏆" : reward.type === "message" ? "💌" : "🖼️"}
-                  </span>
+                  <div className="w-9 h-9 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center shrink-0">
+                    {reward.type === "points"  ? <LucideIcons.Star    className="w-4 h-4 text-amber-500" /> :
+                     reward.type === "badge"   ? <LucideIcons.Trophy  className="w-4 h-4 text-amber-600" /> :
+                     reward.type === "message" ? <LucideIcons.Mail    className="w-4 h-4 text-sky-500"  /> :
+                                                 <LucideIcons.Image   className="w-4 h-4 text-stone-400" />}
+                  </div>
                   <div className="flex-1">
                     <p className="font-medium text-stone-950">{reward.title}</p>
                     <div className="flex items-center gap-2 mt-0.5">
@@ -231,7 +260,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               ))}
               {rewards?.length === 0 && (
                 <div className="text-center py-12 text-stone-400">
-                  <div className="text-4xl mb-2">🎁</div>
+                  <Gift className="w-10 h-10 mx-auto mb-2 opacity-30" />
                   <p>No rewards yet. Add some to the treasure chest!</p>
                 </div>
               )}
@@ -255,9 +284,9 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                       <span className="text-sm text-stone-400">{completedToday}/{total} chores</span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-stone-400 mb-3">
-                      <span>⭐ {kid.points} pts</span>
-                      <span>🔥 {kid.streak} day streak</span>
-                      <span>🏆 Level {kid.level}</span>
+                      <span className="flex items-center gap-1"><LucideIcons.Star className="w-3 h-3" /> {kid.points} pts</span>
+                      <span className="flex items-center gap-1"><LucideIcons.Flame className="w-3 h-3" /> {kid.streak} day streak</span>
+                      <span className="flex items-center gap-1"><LucideIcons.Trophy className="w-3 h-3" /> Level {kid.level}</span>
                     </div>
                     <div className="w-full bg-stone-100 rounded-full h-2.5 border border-stone-200">
                       <div className="bg-amber-400 h-2.5 rounded-full transition-all" style={{ width: `${pct}%` }} />
@@ -267,7 +296,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               })}
               {!kids?.length && (
                 <div className="text-center py-12 text-stone-400">
-                  <div className="text-4xl mb-2">👶</div>
+                  <Users className="w-10 h-10 mx-auto mb-2 opacity-30" />
                   <p>No kids added yet.</p>
                 </div>
               )}
@@ -300,7 +329,9 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
             <div className="space-y-2">
               {kids?.map((kid) => (
                 <div key={kid._id} className="bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 flex items-center gap-3">
-                  <span className="text-2xl">{kid.avatar ?? "🧒"}</span>
+                  <div className="w-9 h-9 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center shrink-0">
+                    <UserPlus className="w-4 h-4 text-stone-400" />
+                  </div>
                   <div className="flex-1 min-w-0">
                     {renamingKidId === kid._id ? (
                       <form onSubmit={handleRenameKid} className="flex gap-2">
@@ -340,7 +371,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               ))}
               {kids?.length === 0 && (
                 <div className="text-center py-12 text-stone-400">
-                  <div className="text-4xl mb-2">👶</div>
+                  <UserPlus className="w-10 h-10 mx-auto mb-2 opacity-30" />
                   <p>No kids yet. Add one above!</p>
                 </div>
               )}

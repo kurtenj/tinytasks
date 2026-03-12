@@ -12,6 +12,8 @@ import {
 } from "framer-motion";
 import { TreasureChest } from "@/components/TreasureChest";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
+import { getPresetByFile, DEFAULT_CARD_COLOR } from "@/lib/chorePresets";
+import * as LucideIcons from "lucide-react";
 
 const CHORES_REQUIRED = 2;
 
@@ -23,8 +25,15 @@ const HEADER_COLORS = [
   { bg: "bg-sky-500",     stroke: "#ffffff", text: "text-white"      },
 ];
 
-// Deck card colors — cycles per chore index
-const DECK_COLORS = ["#38BDF8", "#059669", "#F87171", "#FBBF24", "#A78BFA", "#FB923C"];
+function choreColor(chore: Doc<"chores">): string {
+  return chore.cardColor ?? getPresetByFile(chore.imageUrl)?.color ?? DEFAULT_CARD_COLOR;
+}
+
+function ChoreIcon({ iconName, className }: { iconName: string; className?: string }) {
+  const Icon = (LucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[iconName];
+  if (!Icon) return null;
+  return <Icon className={className} />;
+}
 
 interface KidDashboardProps {
   userId: Id<"users">;
@@ -132,28 +141,42 @@ function ChoreCard({ chore, color, onComplete }: ChoreCardProps) {
       animate={{ scale: 1, opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0 } }}
       transition={{ type: "spring", stiffness: 380, damping: 28 }}
-      className="absolute inset-0 rounded-3xl border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09] flex items-center justify-center select-none touch-none"
+      className="absolute inset-0 rounded-3xl border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09] overflow-hidden select-none touch-none"
       onPointerDown={(e) => dragControls.start(e)}
     >
-      {/* Swipe-to-complete indicator */}
+      {/* Illustration — fills the card */}
+      {chore.imageUrl ? (
+        <img
+          src={chore.imageUrl}
+          alt={chore.title}
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+          draggable={false}
+        />
+      ) : (
+        /* No image: show centered Lucide icon */
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          {chore.icon ? (
+            <ChoreIcon iconName={chore.icon} className="w-24 h-24 text-stone-950/40" />
+          ) : null}
+        </div>
+      )}
+
+      {/* Swipe-to-complete overlay */}
       <motion.div
         style={{ opacity: swipeOpacity }}
-        className="absolute inset-0 rounded-[calc(1.5rem-2px)] bg-emerald-400/25 flex items-center justify-end pr-10 pointer-events-none"
+        className="absolute inset-0 bg-emerald-400/30 flex items-center justify-end pr-10 pointer-events-none"
       >
-        <span className="text-5xl">✓</span>
+        <span className="text-6xl font-bold text-emerald-800">✓</span>
       </motion.div>
 
-      <div className="text-center px-6 pointer-events-none">
-        {chore.icon && <p className="text-6xl mb-4">{chore.icon}</p>}
-        <p className="text-stone-950 text-xl font-medium">{chore.title}</p>
+      {/* Bottom title bar */}
+      <div className="absolute bottom-0 inset-x-0 px-5 pt-6 pb-5 bg-gradient-to-t from-black/25 to-transparent pointer-events-none">
+        <p className="text-stone-950 text-xl font-semibold leading-tight">{chore.title}</p>
         {chore.description && (
-          <p className="text-stone-950/60 text-sm mt-2">{chore.description}</p>
+          <p className="text-stone-950/60 text-sm mt-0.5">{chore.description}</p>
         )}
+        <p className="text-stone-950/30 text-xs mt-1.5 tracking-wide">tap or swipe left to complete</p>
       </div>
-
-      <p className="absolute bottom-5 text-stone-950/25 text-xs tracking-wide pointer-events-none">
-        tap or swipe left to complete
-      </p>
     </motion.div>
   );
 }
@@ -187,10 +210,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const kidIndex = kids.findIndex((k) => k._id === userId);
   const kidColor = HEADER_COLORS[Math.max(0, kidIndex) % HEADER_COLORS.length];
 
-  const getCardColor = (choreId: Id<"chores">) => {
-    const idx = chores?.findIndex((c) => c._id === choreId) ?? 0;
-    return DECK_COLORS[idx % DECK_COLORS.length];
-  };
+  const getCardColor = (chore: Doc<"chores">) => choreColor(chore);
 
   if (!user || !chores) {
     return (
@@ -272,7 +292,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                   style={{
                     insetInline: "2rem",          // 32px each side → narrower than front
                     height: 420,
-                    backgroundColor: getCardColor(backChore._id),
+                    backgroundColor: getCardColor(backChore),
                   }}
                 />
               )}
@@ -283,7 +303,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                   style={{
                     insetInline: "1rem",          // 16px each side
                     height: 420,
-                    backgroundColor: getCardColor(midChore._id),
+                    backgroundColor: getCardColor(midChore),
                   }}
                 />
               )}
@@ -293,7 +313,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                   <ChoreCard
                     key={frontChore._id}
                     chore={frontChore}
-                    color={getCardColor(frontChore._id)}
+                    color={getCardColor(frontChore)}
                     onComplete={() => complete({ choreId: frontChore._id, userId })}
                   />
                 )}

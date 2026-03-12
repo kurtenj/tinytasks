@@ -1,11 +1,19 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { motion } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
+import { getPresetByFile } from "@/lib/chorePresets";
 
-const ICONS = ["🛏️","🍽️","🐕","🧹","📚","🗑️","🧺","🌱","🦷","👟","🧸","🚿"];
+function fileToLabel(filename: string): string {
+  return filename
+    .replace(/\.(png|jpg|jpeg|gif|webp)$/i, "")
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 const DAY_ABBREVS = ["Su", "M", "T", "W", "Th", "F", "Sa"];
 
 interface AddChoreDialogProps {
@@ -17,12 +25,21 @@ interface AddChoreDialogProps {
 export function AddChoreDialog({ userId, onClose, chore }: AddChoreDialogProps) {
   const [title,        setTitle]        = useState(chore?.title ?? "");
   const [description,  setDescription]  = useState(chore?.description ?? "");
-  const [icon,         setIcon]         = useState(chore?.icon ?? "🛏️");
+  const [imageUrl,     setImageUrl]     = useState(chore?.imageUrl ?? "");
   const [scheduleType, setScheduleType] = useState<"floating" | "repeating">(
     chore?.scheduleType ?? "floating"
   );
   const [daysOfWeek,   setDaysOfWeek]   = useState<number[]>(chore?.daysOfWeek ?? []);
   const [assignedTo,   setAssignedTo]   = useState<Id<"users">[]>(chore?.assignedTo ?? []);
+  const [cardColor,    setCardColor]    = useState(chore?.cardColor ?? "");
+  const [imageFiles,   setImageFiles]   = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch("/api/chore-images")
+      .then((r) => r.json())
+      .then(setImageFiles)
+      .catch(() => {});
+  }, []);
 
   const createChore = useMutation(api.chores.create);
   const updateChore = useMutation(api.chores.update);
@@ -38,16 +55,42 @@ export function AddChoreDialog({ userId, onClose, chore }: AddChoreDialogProps) 
       prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id]
     );
 
+  async function extractColor(src: string): Promise<string> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = 1;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 2, 2, 1, 1, 0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        resolve(`rgb(${r},${g},${b})`);
+      };
+      img.onerror = () => resolve("");
+      img.src = src;
+    });
+  }
+
+  const selectImage = async (filename: string) => {
+    const path = `/chores/${filename}`;
+    setImageUrl(path);
+    const preset = getPresetByFile(path);
+    if (!title.trim()) setTitle(preset?.label ?? fileToLabel(filename));
+    const color = await extractColor(path);
+    setCardColor(color);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
     const fields = {
-      title: title.trim(),
+      title:       title.trim(),
       description: description.trim() || undefined,
-      icon,
+      imageUrl:    imageUrl || undefined,
+      cardColor:   cardColor || undefined,
       scheduleType,
-      daysOfWeek: scheduleType === "repeating" ? daysOfWeek : [],
-      assignedTo: assignedTo.length > 0 ? assignedTo : undefined,
+      daysOfWeek:  scheduleType === "repeating" ? daysOfWeek : [],
+      assignedTo:  assignedTo.length > 0 ? assignedTo : undefined,
     };
     if (chore) {
       await updateChore({ id: chore._id, ...fields });
@@ -74,23 +117,51 @@ export function AddChoreDialog({ userId, onClose, chore }: AddChoreDialogProps) 
         <h2 className="font-knewave text-2xl text-stone-950 mb-4">
           {chore ? "Edit Chore" : "Add Chore"}
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Icon picker */}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+
+          {/* Illustration picker */}
           <div>
-            <label className="text-sm text-stone-600 font-medium mb-2 block">Pick an icon</label>
-            <div className="flex flex-wrap gap-2">
-              {ICONS.map((i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setIcon(i)}
-                  className={`text-2xl p-2 rounded-xl transition-all active:scale-[0.97] ${
-                    icon === i ? "bg-amber-100 ring-2 ring-stone-950 scale-110" : "hover:bg-stone-200"
-                  }`}
-                >
-                  {i}
-                </button>
-              ))}
+            <label className="text-sm text-stone-600 font-medium mb-2 block">Illustration</label>
+            <div className="grid grid-cols-3 gap-2">
+              {imageFiles.map((filename) => {
+                const path = `/chores/${filename}`;
+                const selected = imageUrl === path;
+                const preset = getPresetByFile(path);
+                return (
+                  <button
+                    key={filename}
+                    type="button"
+                    onClick={() => selectImage(filename)}
+                    className={`relative aspect-square rounded-2xl border-2 overflow-hidden transition-all active:scale-[0.97] ${
+                      selected
+                        ? "border-stone-950 ring-2 ring-stone-950 scale-105"
+                        : "border-stone-200 hover:border-stone-400"
+                    }`}
+                    style={{ backgroundColor: preset?.color ?? "#e7e5e4" }}
+                    title={preset?.label ?? fileToLabel(filename)}
+                  >
+                    <img
+                      src={path}
+                      alt={fileToLabel(filename)}
+                      className="absolute inset-0 w-full h-full object-contain"
+                    />
+                  </button>
+                );
+              })}
+              {/* No illustration option */}
+              <button
+                type="button"
+                onClick={() => setImageUrl("")}
+                className={`aspect-square rounded-2xl border-2 flex items-center justify-center transition-all active:scale-[0.97] ${
+                  !imageUrl
+                    ? "border-stone-950 ring-2 ring-stone-950 bg-stone-200"
+                    : "border-stone-200 bg-white hover:border-stone-400"
+                }`}
+                title="No illustration"
+              >
+                <span className="text-stone-400 text-xs font-medium">None</span>
+              </button>
             </div>
           </div>
 
@@ -126,19 +197,19 @@ export function AddChoreDialog({ userId, onClose, chore }: AddChoreDialogProps) 
                   key={type}
                   type="button"
                   onClick={() => setScheduleType(type)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-[0.97] border-2 capitalize ${
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-[0.97] border-2 ${
                     scheduleType === type
                       ? "bg-amber-100 border-stone-950 text-stone-950"
                       : "bg-white border-stone-200 text-stone-600 hover:bg-stone-50"
                   }`}
                 >
-                  {type === "floating" ? "🌊 Floating" : "🔁 Repeating"}
+                  {type === "floating" ? "Flexible" : "Repeating"}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Days of week — only for repeating */}
+          {/* Days of week */}
           {scheduleType === "repeating" && (
             <div>
               <label className="text-sm text-stone-600 font-medium mb-2 block">Days of week</label>
@@ -182,7 +253,9 @@ export function AddChoreDialog({ userId, onClose, chore }: AddChoreDialogProps) 
                 ))}
               </div>
               <p className="text-xs text-stone-400 mt-1.5">
-                {assignedTo.length === 0 ? "All kids" : `${assignedTo.length} kid${assignedTo.length !== 1 ? "s" : ""} selected`}
+                {assignedTo.length === 0
+                  ? "All kids"
+                  : `${assignedTo.length} kid${assignedTo.length !== 1 ? "s" : ""} selected`}
               </p>
             </div>
           )}
