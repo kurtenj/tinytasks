@@ -69,7 +69,7 @@ export function AddChoreDialog({ userId, onClose }: AddChoreDialogProps) {
                   key={i}
                   type="button"
                   onClick={() => setIcon(i)}
-                  className={`text-2xl p-2 rounded-xl transition-all ${icon === i ? "bg-amber-100 ring-2 ring-stone-950 scale-110" : "hover:bg-stone-200"}`}
+                  className={`text-2xl p-2 rounded-xl transition-all active:scale-[0.97] ${icon === i ? "bg-amber-100 ring-2 ring-stone-950 scale-110" : "hover:bg-stone-200"}`}
                 >
                   {i}
                 </button>
@@ -103,14 +103,14 @@ export function AddChoreDialog({ userId, onClose }: AddChoreDialogProps) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border-2 border-stone-950 text-stone-600 py-3 rounded-xl font-medium hover:bg-stone-200 transition-colors"
+              className="flex-1 border-2 border-stone-950 text-stone-600 py-3 rounded-xl font-medium hover:bg-stone-200 active:scale-[0.97] transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!title.trim()}
-              className="flex-1 bg-stone-950 text-white py-3 rounded-xl font-medium hover:bg-stone-800 disabled:opacity-50 transition-colors"
+              className="flex-1 bg-stone-950 text-white py-3 rounded-xl font-medium hover:bg-stone-800 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 transition-all"
             >
               Add Chore
             </button>

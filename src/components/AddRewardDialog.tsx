@@ -69,7 +69,7 @@ export function AddRewardDialog({ userId, onClose }: AddRewardDialogProps) {
                     setType(v);
                     setValue(v === "points" ? "10" : "");
                   }}
-                  className={`py-2.5 px-3 rounded-xl text-sm font-medium transition-all border-2 ${
+                  className={`py-2.5 px-3 rounded-xl text-sm font-medium transition-all active:scale-[0.97] border-2 ${
                     type === v
                       ? "bg-amber-100 border-stone-950 text-stone-950"
                       : "bg-white border-stone-200 text-stone-600 hover:bg-stone-50"
@@ -91,7 +91,7 @@ export function AddRewardDialog({ userId, onClose }: AddRewardDialogProps) {
                   key={r}
                   type="button"
                   onClick={() => setRarity(r)}
-                  className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all capitalize border-2 ${
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all active:scale-[0.97] capitalize border-2 ${
                     rarity === r
                       ? "bg-amber-100 border-stone-950 text-stone-950"
                       : "bg-white border-stone-200 text-stone-600 hover:bg-stone-50"
@@ -139,14 +139,14 @@ export function AddRewardDialog({ userId, onClose }: AddRewardDialogProps) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border-2 border-stone-950 text-stone-600 py-3 rounded-xl font-medium hover:bg-stone-200 transition-colors"
+              className="flex-1 border-2 border-stone-950 text-stone-600 py-3 rounded-xl font-medium hover:bg-stone-200 active:scale-[0.97] transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!title.trim() || !value.trim()}
-              className="flex-1 bg-stone-950 text-white py-3 rounded-xl font-medium hover:bg-stone-800 disabled:opacity-50 transition-colors"
+              className="flex-1 bg-stone-950 text-white py-3 rounded-xl font-medium hover:bg-stone-800 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 transition-all"
             >
               Add Reward
             </button>

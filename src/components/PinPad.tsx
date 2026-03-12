@@ -154,7 +154,7 @@ export function PinPad({ adminName, onSuccess, onCancel }: PinPadProps) {
                 <button
                   key={i}
                   onClick={handleDelete}
-                  className="h-14 flex items-center justify-center rounded-2xl text-stone-500 hover:bg-stone-200 active:bg-stone-300 transition-colors"
+                  className="h-14 flex items-center justify-center rounded-2xl text-stone-500 hover:bg-stone-200 active:bg-stone-300 active:scale-[0.97] transition-all"
                 >
                   <Delete className="w-5 h-5" />
                 </button>
@@ -164,7 +164,7 @@ export function PinPad({ adminName, onSuccess, onCancel }: PinPadProps) {
               <button
                 key={i}
                 onClick={() => handleDigit(k)}
-                className="h-14 text-xl font-semibold text-stone-950 rounded-2xl bg-white border-2 border-stone-200 hover:border-stone-950 hover:bg-amber-50 active:scale-95 transition-all"
+                className="h-14 text-xl font-semibold text-stone-950 rounded-2xl bg-white border-2 border-stone-200 hover:border-stone-950 hover:bg-amber-50 active:scale-[0.97] transition-all"
               >
                 {k}
               </button>

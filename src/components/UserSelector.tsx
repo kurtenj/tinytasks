@@ -94,7 +94,7 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
           <p className="text-stone-500 text-lg">Welcome! Let&apos;s get started.</p>
           <button
             onClick={handleSetupFamily}
-            className="bg-stone-950 text-white rounded-2xl px-7 py-3.5 text-lg font-medium hover:bg-stone-800 active:scale-95 transition-all"
+            className="bg-stone-950 text-white rounded-2xl px-7 py-3.5 text-lg font-medium hover:bg-stone-800 active:scale-[0.97] transition-all"
           >
             Set Up Family
           </button>
@@ -110,7 +110,7 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
                     key={kid._id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: (ri * 2 + ki) * 0.08 + 0.15 }}
+                    transition={{ delay: (ri * 2 + ki) * 0.08 + 0.15, scale: { type: "spring", stiffness: 400, damping: 17 } }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => onSelectUser(kid._id, "kid")}
                     className={`${bg} border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09] rounded-3xl flex flex-col gap-4 h-[180px] overflow-clip p-4 w-full text-left`}
@@ -136,8 +136,8 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
           key={admin._id}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          whileTap={{ scale: 0.98 }}
+          transition={{ delay: 0.3, scale: { type: "spring", stiffness: 400, damping: 17 } }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => setPendingAdmin(admin)}
           className="flex items-center justify-center gap-4 bg-stone-200 rounded-lg py-4 w-full shrink-0 hover:bg-stone-300 transition-colors"
         >

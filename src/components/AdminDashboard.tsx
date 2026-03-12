@@ -66,7 +66,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               <button
                 key={id}
                 onClick={() => setTab(id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all active:scale-[0.97] ${
                   tab === id ? "bg-white text-stone-950 shadow-sm" : "text-stone-400 hover:text-white"
                 }`}
               >
@@ -86,7 +86,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               <h2 className="font-semibold text-stone-950">Chores ({chores?.length ?? 0})</h2>
               <button
                 onClick={() => setShowAddChore(true)}
-                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2 px-3 rounded-xl hover:bg-stone-800 transition-colors"
+                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2 px-3 rounded-xl hover:bg-stone-800 active:scale-[0.97] transition-all"
               >
                 <Plus className="w-4 h-4" /> Add Chore
               </button>
@@ -140,7 +140,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               <h2 className="font-semibold text-stone-950">Rewards ({rewards?.length ?? 0})</h2>
               <button
                 onClick={() => setShowAddReward(true)}
-                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2 px-3 rounded-xl hover:bg-stone-800 transition-colors"
+                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2 px-3 rounded-xl hover:bg-stone-800 active:scale-[0.97] transition-all"
               >
                 <Plus className="w-4 h-4" /> Add Reward
               </button>
