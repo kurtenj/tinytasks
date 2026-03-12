@@ -3,19 +3,8 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import type { Id } from "../../convex/_generated/dataModel";
-import {
-  Plus,
-  Trash2,
-  LogOut,
-  RotateCcw,
-  Settings,
-  Gift,
-  CheckSquare,
-  Users,
-} from "lucide-react";
+import { Plus, Trash2, LogOut, RotateCcw, Gift, CheckSquare, Users } from "lucide-react";
 import { AddChoreDialog } from "@/components/AddChoreDialog";
 import { AddRewardDialog } from "@/components/AddRewardDialog";
 
@@ -26,10 +15,7 @@ interface AdminDashboardProps {
   onSwitchUser: () => void;
 }
 
-export function AdminDashboard({
-  userId,
-  onSwitchUser,
-}: AdminDashboardProps) {
+export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   const [tab, setTab] = useState<Tab>("chores");
   const [showAddChore, setShowAddChore] = useState(false);
   const [showAddReward, setShowAddReward] = useState(false);
@@ -43,60 +29,45 @@ export function AdminDashboard({
   const resetDay = useMutation(api.completions.resetDay);
   const updateChore = useMutation(api.chores.update);
 
-  const completedChoreIds = new Set(
-    todayCompletions?.map((c) => c.choreId) ?? []
-  );
-
+  const completedChoreIds = new Set(todayCompletions?.map((c) => c.choreId) ?? []);
   const getKidCompletions = (kidId: Id<"users">) =>
     todayCompletions?.filter((c) => c.userId === kidId).length ?? 0;
 
+  const TABS = [
+    { id: "chores",   icon: CheckSquare, label: "Chores"   },
+    { id: "rewards",  icon: Gift,        label: "Rewards"  },
+    { id: "progress", icon: Users,       label: "Progress" },
+  ] as const;
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-stone-100 font-funnel">
       {/* Header */}
-      <div className="bg-gradient-to-r from-violet-600 to-purple-700 text-white px-4 pb-4">
+      <div className="bg-stone-950 text-white px-4 pb-4">
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between pt-4">
+          <div className="flex items-center justify-between pt-5 mb-4">
+            <h1 className="font-knewave text-2xl">Admin Panel</h1>
             <div className="flex items-center gap-2">
-              <Settings className="w-5 h-5 text-purple-200" />
-              <h1 className="text-xl font-bold">Admin Panel</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/20"
+              <button
                 onClick={() => resetDay()}
+                className="flex items-center gap-1.5 text-stone-400 hover:text-white text-sm py-1.5 px-3 rounded-lg hover:bg-stone-800 transition-colors"
               >
-                <RotateCcw className="w-4 h-4 mr-1" />
+                <RotateCcw className="w-3.5 h-3.5" />
                 Reset Day
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/20"
-                onClick={onSwitchUser}
-              >
+              </button>
+              <button onClick={onSwitchUser} className="text-stone-500 hover:text-white p-2">
                 <LogOut className="w-4 h-4" />
-              </Button>
+              </button>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 mt-4 bg-white/20 rounded-xl p-1">
-            {(
-              [
-                { id: "chores", icon: CheckSquare, label: "Chores" },
-                { id: "rewards", icon: Gift, label: "Rewards" },
-                { id: "progress", icon: Users, label: "Progress" },
-              ] as const
-            ).map(({ id, icon: Icon, label }) => (
+          <div className="flex gap-1 bg-stone-800 rounded-xl p-1">
+            {TABS.map(({ id, icon: Icon, label }) => (
               <button
                 key={id}
                 onClick={() => setTab(id)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
-                  tab === id
-                    ? "bg-white text-violet-700 shadow-sm"
-                    : "text-white/80 hover:text-white"
+                  tab === id ? "bg-white text-stone-950 shadow-sm" : "text-stone-400 hover:text-white"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -112,65 +83,48 @@ export function AdminDashboard({
         {tab === "chores" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-bold text-gray-800">
-                Chores ({chores?.length ?? 0})
-              </h2>
-              <Button
-                size="sm"
+              <h2 className="font-semibold text-stone-950">Chores ({chores?.length ?? 0})</h2>
+              <button
                 onClick={() => setShowAddChore(true)}
-                className="bg-violet-600 hover:bg-violet-700"
+                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2 px-3 rounded-xl hover:bg-stone-800 transition-colors"
               >
-                <Plus className="w-4 h-4 mr-1" /> Add Chore
-              </Button>
+                <Plus className="w-4 h-4" /> Add Chore
+              </button>
             </div>
             <div className="space-y-2">
               {chores?.map((chore) => (
-                <Card
+                <div
                   key={chore._id}
-                  className={`p-4 flex items-center gap-3 ${!chore.isActive ? "opacity-50" : ""}`}
+                  className={`bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 flex items-center gap-3 ${!chore.isActive ? "opacity-50" : ""}`}
                 >
-                  {chore.icon && (
-                    <span className="text-2xl">{chore.icon}</span>
-                  )}
+                  {chore.icon && <span className="text-2xl">{chore.icon}</span>}
                   <div className="flex-1">
-                    <p className="font-medium text-gray-800">{chore.title}</p>
-                    {chore.description && (
-                      <p className="text-sm text-gray-400">
-                        {chore.description}
-                      </p>
-                    )}
+                    <p className="font-medium text-stone-950">{chore.title}</p>
+                    {chore.description && <p className="text-sm text-stone-400">{chore.description}</p>}
                   </div>
                   <div className="flex items-center gap-2">
                     {completedChoreIds.has(chore._id) && (
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-300">
                         Today ✓
                       </span>
                     )}
-                    <label className="flex items-center gap-1 text-xs text-gray-500 cursor-pointer">
+                    <label className="flex items-center gap-1 text-xs text-stone-500 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={chore.isActive}
-                        onChange={(e) =>
-                          updateChore({
-                            id: chore._id,
-                            isActive: e.target.checked,
-                          })
-                        }
-                        className="accent-violet-600"
+                        onChange={(e) => updateChore({ id: chore._id, isActive: e.target.checked })}
+                        className="accent-stone-950"
                       />
                       Active
                     </label>
-                    <button
-                      onClick={() => removeChore({ id: chore._id })}
-                      className="text-red-400 hover:text-red-600 p-1"
-                    >
+                    <button onClick={() => removeChore({ id: chore._id })} className="text-stone-300 hover:text-red-500 p-1 transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                </Card>
+                </div>
               ))}
               {chores?.length === 0 && (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-stone-400">
                   <div className="text-4xl mb-2">📋</div>
                   <p>No chores yet. Add some!</p>
                 </div>
@@ -183,61 +137,43 @@ export function AdminDashboard({
         {tab === "rewards" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-bold text-gray-800">
-                Rewards ({rewards?.length ?? 0})
-              </h2>
-              <Button
-                size="sm"
+              <h2 className="font-semibold text-stone-950">Rewards ({rewards?.length ?? 0})</h2>
+              <button
                 onClick={() => setShowAddReward(true)}
-                className="bg-violet-600 hover:bg-violet-700"
+                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2 px-3 rounded-xl hover:bg-stone-800 transition-colors"
               >
-                <Plus className="w-4 h-4 mr-1" /> Add Reward
-              </Button>
+                <Plus className="w-4 h-4" /> Add Reward
+              </button>
             </div>
             <div className="space-y-2">
               {rewards?.map((reward) => (
-                <Card
+                <div
                   key={reward._id}
-                  className={`p-4 flex items-center gap-3 ${!reward.isActive ? "opacity-50" : ""}`}
+                  className={`bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 flex items-center gap-3 ${!reward.isActive ? "opacity-50" : ""}`}
                 >
                   <span className="text-2xl">
-                    {reward.type === "points"
-                      ? "⭐"
-                      : reward.type === "badge"
-                        ? "🏆"
-                        : reward.type === "message"
-                          ? "💌"
-                          : "🖼️"}
+                    {reward.type === "points" ? "⭐" : reward.type === "badge" ? "🏆" : reward.type === "message" ? "💌" : "🖼️"}
                   </span>
                   <div className="flex-1">
-                    <p className="font-medium text-gray-800">{reward.title}</p>
+                    <p className="font-medium text-stone-950">{reward.title}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${
-                          reward.rarity === "epic"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : reward.rarity === "rare"
-                              ? "bg-purple-100 text-purple-700"
-                              : "bg-green-100 text-green-700"
-                        }`}
-                      >
+                      <span className={`text-xs px-2 py-0.5 rounded-full border ${
+                        reward.rarity === "epic" ? "bg-amber-100 text-amber-700 border-amber-300" :
+                        reward.rarity === "rare" ? "bg-stone-100 text-stone-600 border-stone-300" :
+                                                   "bg-emerald-100 text-emerald-700 border-emerald-300"
+                      }`}>
                         {reward.rarity}
                       </span>
-                      <span className="text-xs text-gray-400">
-                        {reward.type}: {reward.value}
-                      </span>
+                      <span className="text-xs text-stone-400">{reward.type}: {reward.value}</span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => removeReward({ id: reward._id })}
-                    className="text-red-400 hover:text-red-600 p-1"
-                  >
+                  <button onClick={() => removeReward({ id: reward._id })} className="text-stone-300 hover:text-red-500 p-1 transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
-                </Card>
+                </div>
               ))}
               {rewards?.length === 0 && (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-stone-400">
                   <div className="text-4xl mb-2">🎁</div>
                   <p>No rewards yet. Add some to the treasure chest!</p>
                 </div>
@@ -249,46 +185,31 @@ export function AdminDashboard({
         {/* Progress Tab */}
         {tab === "progress" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h2 className="font-bold text-gray-800 mb-4">
-              Today&apos;s Progress
-            </h2>
+            <h2 className="font-semibold text-stone-950 mb-4">Today&apos;s Progress</h2>
             <div className="space-y-4">
               {kids?.map((kid) => {
                 const completedToday = getKidCompletions(kid._id);
-                const total =
-                  chores?.filter((c) => c.isActive).length ?? 0;
+                const total = chores?.filter((c) => c.isActive).length ?? 0;
                 const pct = total ? (completedToday / total) * 100 : 0;
                 return (
-                  <Card key={kid._id} className="p-5">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="text-3xl">{kid.avatar ?? "⭐"}</span>
-                      <div className="flex-1">
-                        <div className="flex justify-between items-center">
-                          <p className="font-semibold text-gray-800">
-                            {kid.name}
-                          </p>
-                          <span className="text-sm text-gray-500">
-                            {completedToday}/{total} chores
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
-                          <span>⭐ {kid.points} pts</span>
-                          <span>🔥 {kid.streak} day streak</span>
-                          <span>🏆 Level {kid.level}</span>
-                        </div>
-                      </div>
+                  <div key={kid._id} className="bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-5">
+                    <div className="flex justify-between items-center mb-1">
+                      <p className="font-semibold text-stone-950">{kid.name}</p>
+                      <span className="text-sm text-stone-400">{completedToday}/{total} chores</span>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-violet-500 to-purple-600 h-2 rounded-full transition-all"
-                        style={{ width: `${pct}%` }}
-                      />
+                    <div className="flex items-center gap-3 text-xs text-stone-400 mb-3">
+                      <span>⭐ {kid.points} pts</span>
+                      <span>🔥 {kid.streak} day streak</span>
+                      <span>🏆 Level {kid.level}</span>
                     </div>
-                  </Card>
+                    <div className="w-full bg-stone-100 rounded-full h-2.5 border border-stone-200">
+                      <div className="bg-amber-400 h-2.5 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
                 );
               })}
               {!kids?.length && (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-stone-400">
                   <div className="text-4xl mb-2">👶</div>
                   <p>No kids added yet.</p>
                 </div>
@@ -298,18 +219,8 @@ export function AdminDashboard({
         )}
       </div>
 
-      {showAddChore && (
-        <AddChoreDialog
-          userId={userId}
-          onClose={() => setShowAddChore(false)}
-        />
-      )}
-      {showAddReward && (
-        <AddRewardDialog
-          userId={userId}
-          onClose={() => setShowAddReward(false)}
-        />
-      )}
+      {showAddChore && <AddChoreDialog userId={userId} onClose={() => setShowAddChore(false)} />}
+      {showAddReward && <AddRewardDialog userId={userId} onClose={() => setShowAddReward(false)} />}
     </div>
   );
 }

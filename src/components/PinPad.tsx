@@ -97,16 +97,16 @@ export function PinPad({ adminName, onSuccess, onCancel }: PinPadProps) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: "spring", bounce: 0.3 }}
-        className="bg-white rounded-3xl p-8 w-full max-w-xs shadow-2xl"
+        className="bg-stone-100 border-4 border-stone-950 shadow-[6px_6px_0px_#0c0c09] rounded-3xl p-8 w-full max-w-xs font-funnel"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-800">{title}</h2>
-            <p className="text-sm text-gray-400 mt-0.5">{subtitle}</p>
+            <h2 className="font-knewave text-xl text-stone-950">{title}</h2>
+            <p className="text-sm text-stone-500 mt-0.5">{subtitle}</p>
           </div>
-          <button onClick={onCancel} className="text-gray-300 hover:text-gray-500 p-1">
+          <button onClick={onCancel} className="text-stone-400 hover:text-stone-700 p-1 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -120,8 +120,10 @@ export function PinPad({ adminName, onSuccess, onCancel }: PinPadProps) {
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className={`w-4 h-4 rounded-full transition-all duration-150 ${
-                i < display.length ? "bg-violet-600 scale-110" : "bg-gray-200"
+              className={`w-4 h-4 rounded-full border-2 transition-all duration-150 ${
+                i < display.length
+                  ? "bg-stone-950 border-stone-950 scale-110"
+                  : "bg-transparent border-stone-400"
               }`}
             />
           ))}
@@ -144,7 +146,7 @@ export function PinPad({ adminName, onSuccess, onCancel }: PinPadProps) {
         </AnimatePresence>
 
         {/* Keypad */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           {keys.map((k, i) => {
             if (k === "") return <div key={i} />;
             if (k === "del") {
@@ -152,7 +154,7 @@ export function PinPad({ adminName, onSuccess, onCancel }: PinPadProps) {
                 <button
                   key={i}
                   onClick={handleDelete}
-                  className="h-14 flex items-center justify-center rounded-2xl text-gray-400 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+                  className="h-14 flex items-center justify-center rounded-2xl text-stone-500 hover:bg-stone-200 active:bg-stone-300 transition-colors"
                 >
                   <Delete className="w-5 h-5" />
                 </button>
@@ -162,7 +164,7 @@ export function PinPad({ adminName, onSuccess, onCancel }: PinPadProps) {
               <button
                 key={i}
                 onClick={() => handleDigit(k)}
-                className="h-14 text-xl font-semibold text-gray-800 rounded-2xl bg-gray-50 hover:bg-violet-50 hover:text-violet-700 active:bg-violet-100 active:scale-95 transition-all"
+                className="h-14 text-xl font-semibold text-stone-950 rounded-2xl bg-white border-2 border-stone-200 hover:border-stone-950 hover:bg-amber-50 active:scale-95 transition-all"
               >
                 {k}
               </button>

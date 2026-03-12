@@ -54,13 +54,13 @@ export function AddChoreDialog({ userId, onClose }: AddChoreDialogProps) {
       <motion.div
         initial={{ y: 100 }}
         animate={{ y: 0 }}
-        className="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md"
+        className="bg-stone-100 border-4 border-stone-950 shadow-[6px_6px_0px_#0c0c09] rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md font-funnel"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Add Chore</h2>
+        <h2 className="font-knewave text-2xl text-stone-950 mb-4">Add Chore</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm text-gray-600 font-medium mb-2 block">
+            <label className="text-sm text-stone-600 font-medium mb-2 block">
               Pick an icon
             </label>
             <div className="flex flex-wrap gap-2">
@@ -69,7 +69,7 @@ export function AddChoreDialog({ userId, onClose }: AddChoreDialogProps) {
                   key={i}
                   type="button"
                   onClick={() => setIcon(i)}
-                  className={`text-2xl p-2 rounded-xl transition-all ${icon === i ? "bg-violet-100 ring-2 ring-violet-400 scale-110" : "hover:bg-gray-100"}`}
+                  className={`text-2xl p-2 rounded-xl transition-all ${icon === i ? "bg-amber-100 ring-2 ring-stone-950 scale-110" : "hover:bg-stone-200"}`}
                 >
                   {i}
                 </button>
@@ -77,40 +77,40 @@ export function AddChoreDialog({ userId, onClose }: AddChoreDialogProps) {
             </div>
           </div>
           <div>
-            <label className="text-sm text-gray-600 font-medium mb-1 block">
+            <label className="text-sm text-stone-600 font-medium mb-1 block">
               Chore name *
             </label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Make your bed"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-400"
+              className="w-full border-2 border-stone-950 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-stone-950"
               autoFocus
             />
           </div>
           <div>
-            <label className="text-sm text-gray-600 font-medium mb-1 block">
+            <label className="text-sm text-stone-600 font-medium mb-1 block">
               Description (optional)
             </label>
             <input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Fluff the pillows too!"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-400"
+              className="w-full border-2 border-stone-950 rounded-xl px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-stone-950"
             />
           </div>
           <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border-2 border-gray-200 text-gray-600 py-3 rounded-xl font-medium hover:bg-gray-50"
+              className="flex-1 border-2 border-stone-950 text-stone-600 py-3 rounded-xl font-medium hover:bg-stone-200 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!title.trim()}
-              className="flex-1 bg-violet-600 text-white py-3 rounded-xl font-medium hover:bg-violet-700 disabled:opacity-50"
+              className="flex-1 bg-stone-950 text-white py-3 rounded-xl font-medium hover:bg-stone-800 disabled:opacity-50 transition-colors"
             >
               Add Chore
             </button>

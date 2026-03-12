@@ -6,15 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { PinPad } from "@/components/PinPad";
 
+// Each entry: Tailwind bg class, text class, SVG stroke hex
 const CARD_COLORS = [
-  { bg: "oklch(82.8% 0.189 84.4)", text: "oklch(15.3% 0.006 107.1)", stroke: "#0C0C09" },
-  { bg: "oklch(50.8% 0.118 165.6)", text: "oklch(100% 0 0)",          stroke: "#FFFFFF" },
-  { bg: "oklch(70.4% 0.191 22.2)", text: "oklch(15.3% 0.006 107.1)", stroke: "#0C0C09" },
-  { bg: "oklch(72% 0.15 250)",     text: "oklch(100% 0 0)",          stroke: "#FFFFFF" },
+  { bg: "bg-amber-400",   text: "text-stone-950", stroke: "#0c0c09" },
+  { bg: "bg-emerald-700", text: "text-white",      stroke: "#ffffff" },
+  { bg: "bg-rose-400",    text: "text-stone-950",  stroke: "#0c0c09" },
+  { bg: "bg-sky-500",     text: "text-white",      stroke: "#ffffff" },
 ];
-
-const BG = "oklch(93% 0.007 106.5)";
-const NEAR_BLACK = "oklch(15.3% 0.006 107.1)";
 
 function CoinIcon({ stroke }: { stroke: string }) {
   return (
@@ -39,14 +37,14 @@ function CoinIcon({ stroke }: { stroke: string }) {
 function LockIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path d="M16 4V10"  stroke="#474739" strokeWidth="2" strokeLinecap="square" />
-      <path d="M12 15V16" stroke="#474739" strokeWidth="2" strokeLinecap="square" />
-      <path d="M5 21H19"  stroke="#474739" strokeWidth="2" strokeLinecap="square" />
-      <path d="M3 12V19"  stroke="#474739" strokeWidth="2" strokeLinecap="square" />
-      <path d="M21 12V19" stroke="#474739" strokeWidth="2" strokeLinecap="square" />
-      <path d="M8 10V4"   stroke="#474739" strokeWidth="2" strokeLinecap="square" />
-      <path d="M5 10H19"  stroke="#474739" strokeWidth="2" strokeLinecap="square" />
-      <path d="M10 2H14"  stroke="#474739" strokeWidth="2" strokeLinecap="square" />
+      <path d="M16 4V10"  stroke="#57534e" strokeWidth="2" strokeLinecap="square" />
+      <path d="M12 15V16" stroke="#57534e" strokeWidth="2" strokeLinecap="square" />
+      <path d="M5 21H19"  stroke="#57534e" strokeWidth="2" strokeLinecap="square" />
+      <path d="M3 12V19"  stroke="#57534e" strokeWidth="2" strokeLinecap="square" />
+      <path d="M21 12V19" stroke="#57534e" strokeWidth="2" strokeLinecap="square" />
+      <path d="M8 10V4"   stroke="#57534e" strokeWidth="2" strokeLinecap="square" />
+      <path d="M5 10H19"  stroke="#57534e" strokeWidth="2" strokeLinecap="square" />
+      <path d="M10 2H14"  stroke="#57534e" strokeWidth="2" strokeLinecap="square" />
     </svg>
   );
 }
@@ -73,78 +71,40 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
 
   // Pair kids into rows of 2
   const kidRows: Doc<"users">[][] = [];
-  for (let i = 0; i < kids.length; i += 2) {
-    kidRows.push(kids.slice(i, i + 2));
-  }
+  for (let i = 0; i < kids.length; i += 2) kidRows.push(kids.slice(i, i + 2));
 
   return (
-    <div
-      style={{
-        backgroundColor: BG,
-        minHeight: "100svh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        paddingTop: "64px",
-        paddingBottom: "16px",
-        paddingLeft: "16px",
-        paddingRight: "16px",
-        gap: "48px",
-        fontFamily: "var(--font-funnel), system-ui, sans-serif",
-      }}
-    >
+    <div className="min-h-svh bg-stone-100 font-funnel flex flex-col items-center pt-16 pb-4 px-4 gap-12">
       {/* Title */}
       <motion.h1
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        style={{
-          fontFamily: "var(--font-knewave), system-ui, sans-serif",
-          fontSize: "56px",
-          lineHeight: "68px",
-          textAlign: "center",
-          color: NEAR_BLACK,
-          flexShrink: 0,
-        }}
+        className="font-knewave text-[56px] leading-[68px] text-center text-stone-950 shrink-0"
       >
         Tiny{"\n"}Tasks
       </motion.h1>
 
-      {/* Kid cards */}
       {users.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}
+          className="flex flex-col items-center gap-4"
         >
-          <p style={{ color: "oklch(39.4% 0.023 107.4)", fontSize: "18px" }}>
-            Welcome! Let&apos;s get started.
-          </p>
+          <p className="text-stone-500 text-lg">Welcome! Let&apos;s get started.</p>
           <button
             onClick={handleSetupFamily}
-            style={{
-              backgroundColor: NEAR_BLACK,
-              color: "white",
-              borderRadius: "16px",
-              padding: "14px 28px",
-              fontSize: "18px",
-              fontFamily: "var(--font-funnel), system-ui, sans-serif",
-              fontWeight: 500,
-              border: "none",
-              cursor: "pointer",
-            }}
+            className="bg-stone-950 text-white rounded-2xl px-7 py-3.5 text-lg font-medium hover:bg-stone-800 active:scale-95 transition-all"
           >
             Set Up Family
           </button>
         </motion.div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "100%", flex: 1 }}>
+        <div className="flex flex-col gap-4 w-full flex-1">
           {kidRows.map((row, ri) => (
-            <div key={ri} style={{ display: "flex", gap: "16px", width: "100%" }}>
+            <div key={ri} className="flex gap-4 w-full">
               {row.map((kid, ki) => {
-                const colorIdx = kids.indexOf(kid) % CARD_COLORS.length;
-                const { bg, text, stroke } = CARD_COLORS[colorIdx];
+                const { bg, text, stroke } = CARD_COLORS[kids.indexOf(kid) % CARD_COLORS.length];
                 return (
                   <motion.button
                     key={kid._id}
@@ -153,45 +113,24 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
                     transition={{ delay: (ri * 2 + ki) * 0.08 + 0.15 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => onSelectUser(kid._id, "kid")}
-                    style={{
-                      backgroundColor: bg,
-                      borderColor: NEAR_BLACK,
-                      borderRadius: "24px",
-                      borderStyle: "solid",
-                      borderWidth: "4px",
-                      boxShadow: `${NEAR_BLACK} 5px 5px 0px`,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "16px",
-                      height: "180px",
-                      overflow: "clip",
-                      padding: "16px",
-                      width: "100%",
-                      cursor: "pointer",
-                      textAlign: "left",
-                    }}
+                    className={`${bg} border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09] rounded-3xl flex flex-col gap-4 h-[180px] overflow-clip p-4 w-full text-left`}
                   >
-                    <span style={{ color: text, fontSize: "20px", fontWeight: 500, lineHeight: "24px" }}>
-                      {kid.name}
-                    </span>
-                    <div style={{ flex: 1 }} />
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span className={`${text} text-xl font-medium leading-6`}>{kid.name}</span>
+                    <div className="flex-1" />
+                    <div className="flex items-center gap-2">
                       <CoinIcon stroke={stroke} />
-                      <span style={{ color: text, fontSize: "20px", fontWeight: 500 }}>
-                        {kid.points}
-                      </span>
+                      <span className={`${text} text-xl font-medium`}>{kid.points}</span>
                     </div>
                   </motion.button>
                 );
               })}
-              {/* Fill empty slot if odd number of kids */}
-              {row.length === 1 && <div style={{ width: "100%" }} />}
+              {row.length === 1 && <div className="w-full" />}
             </div>
           ))}
         </div>
       )}
 
-      {/* Parent button */}
+      {/* Parent button(s) */}
       {admins.map((admin) => (
         <motion.button
           key={admin._id}
@@ -200,23 +139,9 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
           transition={{ delay: 0.3 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setPendingAdmin(admin)}
-          style={{
-            alignItems: "center",
-            backgroundColor: "oklch(88% 0.011 106.6)",
-            borderRadius: "8px",
-            display: "flex",
-            flexShrink: 0,
-            gap: "16px",
-            justifyContent: "center",
-            padding: "16px",
-            width: "100%",
-            border: "none",
-            cursor: "pointer",
-          }}
+          className="flex items-center justify-center gap-4 bg-stone-200 rounded-lg py-4 w-full shrink-0 hover:bg-stone-300 transition-colors"
         >
-          <span style={{ color: "oklch(39.4% 0.023 107.4)", fontSize: "20px", fontFamily: "var(--font-funnel), system-ui, sans-serif" }}>
-            {admin.name}
-          </span>
+          <span className="text-stone-500 text-xl">{admin.name}</span>
           <LockIcon />
         </motion.button>
       ))}
@@ -225,10 +150,7 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
         {pendingAdmin && (
           <PinPad
             adminName={pendingAdmin.name}
-            onSuccess={() => {
-              onSelectUser(pendingAdmin._id, "admin");
-              setPendingAdmin(null);
-            }}
+            onSuccess={() => { onSelectUser(pendingAdmin._id, "admin"); setPendingAdmin(null); }}
             onCancel={() => setPendingAdmin(null)}
           />
         )}

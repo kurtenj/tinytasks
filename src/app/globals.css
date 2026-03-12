@@ -122,8 +122,17 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-funnel), system-ui, sans-serif;
   }
   html {
     @apply font-sans;
   }
+}
+
+@utility font-knewave {
+  font-family: var(--font-knewave), system-ui, sans-serif;
+}
+
+@utility font-funnel {
+  font-family: var(--font-funnel), system-ui, sans-serif;
 }

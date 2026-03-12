@@ -27,10 +27,8 @@ export function ChoreItem({ chore, completed, userId }: ChoreItemProps) {
     <motion.button
       onClick={toggle}
       whileTap={{ scale: 0.97 }}
-      className={`w-full rounded-2xl p-4 flex items-center gap-3 transition-all shadow-sm ${
-        completed
-          ? "bg-green-50 border-2 border-green-400"
-          : "bg-white border-2 border-transparent hover:border-violet-200"
+      className={`w-full rounded-2xl p-4 flex items-center gap-3 transition-all border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] font-funnel ${
+        completed ? "bg-amber-50" : "bg-white"
       }`}
     >
       <motion.div
@@ -39,21 +37,19 @@ export function ChoreItem({ chore, completed, userId }: ChoreItemProps) {
         transition={{ duration: 0.3 }}
       >
         {completed ? (
-          <CheckCircle2 className="w-6 h-6 text-green-500 flex-shrink-0" />
+          <CheckCircle2 className="w-6 h-6 text-amber-500 flex-shrink-0" />
         ) : (
-          <Circle className="w-6 h-6 text-gray-300 flex-shrink-0" />
+          <Circle className="w-6 h-6 text-stone-300 flex-shrink-0" />
         )}
       </motion.div>
       <div className="flex items-center gap-2 flex-1 text-left">
         {chore.icon && <span className="text-2xl">{chore.icon}</span>}
         <div>
-          <p
-            className={`font-medium ${completed ? "line-through text-gray-400" : "text-gray-800"}`}
-          >
+          <p className={`font-medium ${completed ? "line-through text-stone-400" : "text-stone-950"}`}>
             {chore.title}
           </p>
           {chore.description && (
-            <p className="text-xs text-gray-400">{chore.description}</p>
+            <p className="text-xs text-stone-400">{chore.description}</p>
           )}
         </div>
       </div>
@@ -61,7 +57,7 @@ export function ChoreItem({ chore, completed, userId }: ChoreItemProps) {
         <motion.span
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="text-green-500 text-sm font-medium"
+          className="text-amber-500 text-sm font-medium"
         >
           Done! ✓
         </motion.span>
