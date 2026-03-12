@@ -8,7 +8,10 @@
       "Bash(npx create-next-app@latest tinytasks-setup --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --yes)",
       "Bash(npm install convex framer-motion canvas-confetti @radix-ui/react-dialog @radix-ui/react-progress @radix-ui/react-avatar lucide-react class-variance-authority clsx tailwind-merge)",
       "Bash(npm install -D @types/canvas-confetti)",
-      "Bash(npx shadcn@latest init -d)"
+      "Bash(npx shadcn@latest init -d)",
+      "Bash(npx shadcn@latest add card dialog progress badge avatar toast -y)",
+      "Bash(npx shadcn@latest add card dialog progress badge avatar sonner -y)",
+      "Bash(npx tsc --noEmit)"
     ]
   }
 }
