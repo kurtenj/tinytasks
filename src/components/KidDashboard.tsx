@@ -2,9 +2,16 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useTransform,
+  useDragControls,
+  animate,
+} from "framer-motion";
 import { TreasureChest } from "@/components/TreasureChest";
-import type { Id } from "../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../convex/_generated/dataModel";
 
 const CHORES_REQUIRED = 2;
 
@@ -81,27 +88,104 @@ function LevelIcon({ stroke }: { stroke: string }) {
   );
 }
 
+// ── ChoreCard ─────────────────────────────────────────────────────────────────
+
+interface ChoreCardProps {
+  chore: Doc<"chores">;
+  color: string;
+  onComplete: () => void;
+}
+
+function ChoreCard({ chore, color, onComplete }: ChoreCardProps) {
+  const x = useMotionValue(0);
+  const rotate = useTransform(x, [-250, 0, 250], [-18, 0, 18]);
+  // Swipe-left overlay: fully visible at -120px
+  const swipeOpacity = useTransform(x, [0, -60, -120], [0, 0.35, 1]);
+
+  const dragControls = useDragControls();
+
+  const doComplete = () => {
+    // Fly the card off to the left, then fire the mutation
+    animate(x, -520, { ease: [0.4, 0, 0.9, 1], duration: 0.28 });
+    setTimeout(onComplete, 210);
+  };
+
+  return (
+    <motion.div
+      drag="x"
+      dragControls={dragControls}
+      dragListener={false}          // drag starts only via dragControls.start()
+      style={{ x, rotate, backgroundColor: color }}
+      dragConstraints={{ left: -520, right: 20 }}
+      dragElastic={0.04}            // near 1:1 finger tracking within constraints
+      onDragEnd={(_, info) => {
+        const isTap   = Math.abs(info.offset.x) < 6 && Math.abs(info.velocity.x) < 80;
+        const isSwipe = info.offset.x < -280 || info.velocity.x < -800;
+        if (isTap || isSwipe) {
+          doComplete();
+        } else {
+          // Spring back to resting position with a bit of overshoot
+          animate(x, 0, { type: "spring", stiffness: 320, damping: 22 });
+        }
+      }}
+      initial={{ scale: 0.92, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0 } }}
+      transition={{ type: "spring", stiffness: 380, damping: 28 }}
+      className="absolute inset-0 rounded-3xl border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09] flex items-center justify-center select-none touch-none"
+      onPointerDown={(e) => dragControls.start(e)}
+    >
+      {/* Swipe-to-complete indicator */}
+      <motion.div
+        style={{ opacity: swipeOpacity }}
+        className="absolute inset-0 rounded-[calc(1.5rem-2px)] bg-emerald-400/25 flex items-center justify-end pr-10 pointer-events-none"
+      >
+        <span className="text-5xl">✓</span>
+      </motion.div>
+
+      <div className="text-center px-6 pointer-events-none">
+        {chore.icon && <p className="text-6xl mb-4">{chore.icon}</p>}
+        <p className="text-stone-950 text-xl font-medium">{chore.title}</p>
+        {chore.description && (
+          <p className="text-stone-950/60 text-sm mt-2">{chore.description}</p>
+        )}
+      </div>
+
+      <p className="absolute bottom-5 text-stone-950/25 text-xs tracking-wide pointer-events-none">
+        tap or swipe left to complete
+      </p>
+    </motion.div>
+  );
+}
+
+// ── KidDashboard ──────────────────────────────────────────────────────────────
+
 export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const [showChest, setShowChest] = useState(false);
 
-  const user         = useQuery(api.users.get, { id: userId });
-  const allUsers     = useQuery(api.users.list);
-  const chores       = useQuery(api.chores.listForKid, { userId });
-  const completions  = useQuery(api.completions.getTodayForUser, { userId });
-  const todayOpen    = useQuery(api.treasureOpens.getTodayForUser, { userId });
-  const complete     = useMutation(api.completions.complete);
+  const user        = useQuery(api.users.get, { id: userId });
+  const allUsers    = useQuery(api.users.list);
+  const chores      = useQuery(api.chores.listForKid, { userId });
+  const completions = useQuery(api.completions.getTodayForUser, { userId });
+  const todayOpen   = useQuery(api.treasureOpens.getTodayForUser, { userId });
+  const complete    = useMutation(api.completions.complete);
 
   const completedIds   = new Set(completions?.map((c) => c.choreId) ?? []);
   const completedCount = completedIds.size;
   const chestUnlocked  = completedCount >= CHORES_REQUIRED;
   const progress       = Math.min((completedCount / CHORES_REQUIRED) * 100, 100);
-  const remaining      = chores?.filter((c) => !completedIds.has(c._id)) ?? [];
-  const allDone        = chores !== undefined && remaining.length === 0;
+
+  const remaining  = chores?.filter((c) => !completedIds.has(c._id)) ?? [];
+  const completed  = chores?.filter((c) =>  completedIds.has(c._id)) ?? [];
+
+  // Cap the visible deck at 3 cards
+  const deckChores = remaining.slice(0, 3);
+  const [frontChore, midChore, backChore] = deckChores;
 
   // Match kid's color to their position in the kids list (same order as UserSelector)
-  const kids      = allUsers?.filter((u) => u.role === "kid") ?? [];
-  const kidIndex  = kids.findIndex((k) => k._id === userId);
-  const kidColor  = HEADER_COLORS[Math.max(0, kidIndex) % HEADER_COLORS.length];
+  const kids     = allUsers?.filter((u) => u.role === "kid") ?? [];
+  const kidIndex = kids.findIndex((k) => k._id === userId);
+  const kidColor = HEADER_COLORS[Math.max(0, kidIndex) % HEADER_COLORS.length];
 
   const getCardColor = (choreId: Id<"chores">) => {
     const idx = chores?.findIndex((c) => c._id === choreId) ?? 0;
@@ -115,8 +199,6 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
       </div>
     );
   }
-
-  const [frontChore, midChore, backChore] = remaining;
 
   return (
     <div className="min-h-screen bg-stone-100 font-funnel">
@@ -142,14 +224,11 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                 animate={{ width: `${progress}%` }}
                 transition={{ type: "spring", stiffness: 200, damping: 24 }}
               >
-                {/* Solid fill */}
                 <div className="flex-1 bg-stone-950" style={{ minWidth: 0 }} />
-                {/* Pixel edge — col 1: 2 dots with top/bottom padding */}
                 <div className="w-[3px] shrink-0 flex flex-col gap-[3px] py-[3px]">
                   <div className="w-[3px] h-[3px] bg-stone-950" />
                   <div className="w-[3px] h-[3px] bg-stone-950" />
                 </div>
-                {/* Pixel edge — col 2: 3 dots, no padding */}
                 <div className="w-[3px] shrink-0 flex flex-col gap-[3px]">
                   <div className="w-[3px] h-[3px] bg-stone-950" />
                   <div className="w-[3px] h-[3px] bg-stone-950" />
@@ -177,92 +256,97 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
         </div>
       </div>
 
-      {/* ── Card deck ── */}
+      {/* ── Body ── */}
       <div className="max-w-lg mx-auto">
-        {allDone ? (
-          <div className="px-4 pt-16 flex flex-col items-center gap-6">
-            <p className="font-knewave text-3xl text-stone-950 text-center">All done! 🎉</p>
-            {chestUnlocked && (
+
+        {/* Card deck
+            Outer padding pt-10 (40px) ensures the -top-8 back card (32px above container)
+            is always 8px below the header — never overlapping it. */}
+        {remaining.length > 0 && (
+          <div className="px-4 pt-10">
+            <div className="relative h-[420px]">
+              {/* Back card — peeks 32px above the front */}
+              {backChore && (
+                <div
+                  className="absolute -top-8 rounded-3xl border-4 border-stone-950"
+                  style={{
+                    insetInline: "2rem",          // 32px each side → narrower than front
+                    height: 420,
+                    backgroundColor: getCardColor(backChore._id),
+                  }}
+                />
+              )}
+              {/* Mid card — peeks 16px above the front */}
+              {midChore && (
+                <div
+                  className="absolute -top-4 rounded-3xl border-4 border-stone-950"
+                  style={{
+                    insetInline: "1rem",          // 16px each side
+                    height: 420,
+                    backgroundColor: getCardColor(midChore._id),
+                  }}
+                />
+              )}
+              {/* Front card — draggable, fills container */}
+              <AnimatePresence>
+                {frontChore && (
+                  <ChoreCard
+                    key={frontChore._id}
+                    chore={frontChore}
+                    color={getCardColor(frontChore._id)}
+                    onComplete={() => complete({ choreId: frontChore._id, userId })}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        )}
+
+        {/* Chest button */}
+        <AnimatePresence>
+          {chestUnlocked && (
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 22 }}
+              className="px-4 mt-8 flex justify-center"
+            >
               <motion.button
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 onClick={() => setShowChest(true)}
                 className={`${kidColor.bg} border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09] rounded-3xl px-10 py-6 font-knewave text-2xl text-stone-950`}
               >
                 {todayOpen ? "View reward 🎁" : "Open chest! 🎁"}
               </motion.button>
-            )}
-          </div>
-        ) : (
-          <div className="relative pt-8 px-4">
-            {/* Back card */}
-            {backChore && (
-              <div
-                className="absolute top-0 left-1/2 -translate-x-1/2 h-[420px] rounded-3xl border-4 border-stone-950"
-                style={{ width: "calc(100% - 64px)", backgroundColor: getCardColor(backChore._id) }}
-              />
-            )}
-            {/* Middle card */}
-            {midChore && (
-              <div
-                className="absolute top-4 left-1/2 -translate-x-1/2 h-[420px] rounded-3xl border-4 border-stone-950"
-                style={{ width: "calc(100% - 48px)", backgroundColor: getCardColor(midChore._id) }}
-              />
-            )}
-            {/* Front card */}
-            <AnimatePresence mode="wait">
-              {frontChore && (
-                <motion.div
-                  key={frontChore._id}
-                  drag="x"
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.6}
-                  onDragEnd={(_, info) => {
-                    if (info.offset.x < -80 || info.velocity.x < -500) {
-                      complete({ choreId: frontChore._id, userId });
-                    }
-                  }}
-                  onTap={() => complete({ choreId: frontChore._id, userId })}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ x: 0, opacity: 1, scale: 1, rotate: 0 }}
-                  exit={{ x: -460, opacity: 0, rotate: -12, transition: { duration: 0.32, ease: "easeIn" } }}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  className="relative h-[420px] rounded-3xl border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09] flex items-center justify-center select-none cursor-grab active:cursor-grabbing"
-                  style={{ backgroundColor: getCardColor(frontChore._id) }}
-                >
-                  <div className="text-center px-6 pointer-events-none">
-                    {frontChore.icon && <p className="text-6xl mb-4">{frontChore.icon}</p>}
-                    <p className="text-stone-950 text-xl font-medium">{frontChore.title}</p>
-                    {frontChore.description && (
-                      <p className="text-stone-950/50 text-sm mt-2">{frontChore.description}</p>
-                    )}
-                  </div>
-                  <p className="absolute bottom-5 text-stone-950/30 text-xs tracking-wide">
-                    tap or swipe left to complete
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            {/* Chest CTA once unlocked (chores still remain) */}
-            {chestUnlocked && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-6 flex justify-center"
-              >
-                <button
-                  onClick={() => setShowChest(true)}
-                  className={`${kidColor.bg} border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl px-6 py-3 font-medium text-stone-950 active:scale-[0.97] transition-transform`}
-                >
-                  {todayOpen ? "View reward 🎁" : "Open chest! 🎁"}
-                </button>
-              </motion.div>
-            )}
+        {/* Completed checklist */}
+        {completed.length > 0 && (
+          <div className="px-4 mt-8 pb-12">
+            <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3">
+              Completed today
+            </p>
+            <div className="space-y-2">
+              {completed.map((chore) => (
+                <div key={chore._id} className="flex items-center gap-3 py-1">
+                  <div className="w-5 h-5 rounded bg-emerald-500 flex items-center justify-center shrink-0">
+                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                      <path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="square" strokeLinejoin="miter" />
+                    </svg>
+                  </div>
+                  <span className="text-stone-400 line-through text-sm">
+                    {chore.icon && <span className="mr-1.5">{chore.icon}</span>}
+                    {chore.title}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
+
       </div>
 
       <AnimatePresence>
