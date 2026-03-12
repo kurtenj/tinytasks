@@ -3,14 +3,53 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { Crown, Star, Plus } from "lucide-react";
 import { PinPad } from "@/components/PinPad";
 
-const KID_AVATARS = ["🐶", "🐱", "🐰", "🦊", "🐸", "🦁", "🐼", "🐨"];
-const ADMIN_AVATAR = "👑";
+const CARD_COLORS = [
+  { bg: "oklch(82.8% 0.189 84.4)", text: "oklch(15.3% 0.006 107.1)", stroke: "#0C0C09" },
+  { bg: "oklch(50.8% 0.118 165.6)", text: "oklch(100% 0 0)",          stroke: "#FFFFFF" },
+  { bg: "oklch(70.4% 0.191 22.2)", text: "oklch(15.3% 0.006 107.1)", stroke: "#0C0C09" },
+  { bg: "oklch(72% 0.15 250)",     text: "oklch(100% 0 0)",          stroke: "#FFFFFF" },
+];
+
+const BG = "oklch(93% 0.007 106.5)";
+const NEAR_BLACK = "oklch(15.3% 0.006 107.1)";
+
+function CoinIcon({ stroke }: { stroke: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M18 18L16 18" stroke={stroke} strokeWidth="2" strokeLinecap="square" />
+      <path d="M6 18L10 18"  stroke={stroke} strokeWidth="2" strokeLinecap="square" />
+      <path d="M20 16.01L20 16" stroke={stroke} strokeWidth="2" strokeLinecap="square" />
+      <path d="M12 16.01L12 16" stroke={stroke} strokeWidth="2" strokeLinecap="square" />
+      <path d="M4 16.01L4 16"   stroke={stroke} strokeWidth="2" strokeLinecap="square" />
+      <path d="M22 14L22 10"    stroke={stroke} strokeWidth="2" strokeLinecap="square" />
+      <path d="M14 10L14 14"    stroke={stroke} strokeWidth="2" strokeLinecap="square" />
+      <path d="M2 10L2 14"      stroke={stroke} strokeWidth="2" strokeLinecap="square" />
+      <path d="M20 8.01L20 8"   stroke={stroke} strokeWidth="2" strokeLinecap="square" />
+      <path d="M12 8.01L12 8"   stroke={stroke} strokeWidth="2" strokeLinecap="square" />
+      <path d="M4 8.01L4 8"     stroke={stroke} strokeWidth="2" strokeLinecap="square" />
+      <path d="M18 6L16 6"      stroke={stroke} strokeWidth="2" strokeLinecap="square" />
+      <path d="M6 6L10 6"       stroke={stroke} strokeWidth="2" strokeLinecap="square" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M16 4V10"  stroke="#474739" strokeWidth="2" strokeLinecap="square" />
+      <path d="M12 15V16" stroke="#474739" strokeWidth="2" strokeLinecap="square" />
+      <path d="M5 21H19"  stroke="#474739" strokeWidth="2" strokeLinecap="square" />
+      <path d="M3 12V19"  stroke="#474739" strokeWidth="2" strokeLinecap="square" />
+      <path d="M21 12V19" stroke="#474739" strokeWidth="2" strokeLinecap="square" />
+      <path d="M8 10V4"   stroke="#474739" strokeWidth="2" strokeLinecap="square" />
+      <path d="M5 10H19"  stroke="#474739" strokeWidth="2" strokeLinecap="square" />
+      <path d="M10 2H14"  stroke="#474739" strokeWidth="2" strokeLinecap="square" />
+    </svg>
+  );
+}
 
 interface UserSelectorProps {
   users: Doc<"users">[];
@@ -24,123 +63,163 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
   const kids = users.filter((u) => u.role === "kid");
   const admins = users.filter((u) => u.role === "admin");
 
-  const handleCreateSampleData = async () => {
-    // Create admin if none
-    if (admins.length === 0) {
-      await createUser({ name: "Parent", role: "admin", avatar: ADMIN_AVATAR });
-    }
-    // Create kids if none
+  const handleSetupFamily = async () => {
+    if (admins.length === 0) await createUser({ name: "Parent", role: "admin" });
     if (kids.length === 0) {
-      await createUser({
-        name: "Alex",
-        role: "kid",
-        avatar: KID_AVATARS[0],
-      });
-      await createUser({
-        name: "Jordan",
-        role: "kid",
-        avatar: KID_AVATARS[1],
-      });
+      await createUser({ name: "Kid 1", role: "kid" });
+      await createUser({ name: "Kid 2", role: "kid" });
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-violet-600 to-purple-800 flex flex-col items-center justify-center p-6">
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="text-center mb-8"
-      >
-        <div className="text-7xl mb-4">⭐</div>
-        <h1 className="text-4xl font-bold text-white">Tiny Tasks</h1>
-        <p className="text-purple-200 mt-2">Who&apos;s ready to earn today?</p>
-      </motion.div>
+  // Pair kids into rows of 2
+  const kidRows: Doc<"users">[][] = [];
+  for (let i = 0; i < kids.length; i += 2) {
+    kidRows.push(kids.slice(i, i + 2));
+  }
 
+  return (
+    <div
+      style={{
+        backgroundColor: BG,
+        minHeight: "100svh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        paddingTop: "64px",
+        paddingBottom: "16px",
+        paddingLeft: "16px",
+        paddingRight: "16px",
+        gap: "48px",
+        fontFamily: "var(--font-funnel), system-ui, sans-serif",
+      }}
+    >
+      {/* Title */}
+      <motion.h1
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        style={{
+          fontFamily: "var(--font-knewave), system-ui, sans-serif",
+          fontSize: "56px",
+          lineHeight: "68px",
+          textAlign: "center",
+          color: NEAR_BLACK,
+          flexShrink: 0,
+        }}
+      >
+        Tiny{"\n"}Tasks
+      </motion.h1>
+
+      {/* Kid cards */}
       {users.length === 0 ? (
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}
         >
-          <Card className="p-6 text-center max-w-sm">
-            <p className="text-gray-600 mb-4">Welcome! Let&apos;s get started.</p>
-            <Button
-              onClick={handleCreateSampleData}
-              className="bg-violet-600 hover:bg-violet-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Set Up Family
-            </Button>
-          </Card>
+          <p style={{ color: "oklch(39.4% 0.023 107.4)", fontSize: "18px" }}>
+            Welcome! Let&apos;s get started.
+          </p>
+          <button
+            onClick={handleSetupFamily}
+            style={{
+              backgroundColor: NEAR_BLACK,
+              color: "white",
+              borderRadius: "16px",
+              padding: "14px 28px",
+              fontSize: "18px",
+              fontFamily: "var(--font-funnel), system-ui, sans-serif",
+              fontWeight: 500,
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Set Up Family
+          </button>
         </motion.div>
       ) : (
-        <div className="w-full max-w-md space-y-6">
-          {kids.length > 0 && (
-            <div>
-              <h2 className="text-white/70 text-sm font-medium uppercase tracking-wide mb-3 text-center">
-                Kids
-              </h2>
-              <div className="grid grid-cols-2 gap-3">
-                {kids.map((user, i) => (
-                  <motion.div
-                    key={user._id}
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: i * 0.1 + 0.2 }}
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "100%", flex: 1 }}>
+          {kidRows.map((row, ri) => (
+            <div key={ri} style={{ display: "flex", gap: "16px", width: "100%" }}>
+              {row.map((kid, ki) => {
+                const colorIdx = kids.indexOf(kid) % CARD_COLORS.length;
+                const { bg, text, stroke } = CARD_COLORS[colorIdx];
+                return (
+                  <motion.button
+                    key={kid._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: (ri * 2 + ki) * 0.08 + 0.15 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => onSelectUser(kid._id, "kid")}
+                    style={{
+                      backgroundColor: bg,
+                      borderColor: NEAR_BLACK,
+                      borderRadius: "24px",
+                      borderStyle: "solid",
+                      borderWidth: "4px",
+                      boxShadow: `${NEAR_BLACK} 5px 5px 0px`,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "16px",
+                      height: "180px",
+                      overflow: "clip",
+                      padding: "16px",
+                      width: "100%",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
                   >
-                    <button
-                      onClick={() => onSelectUser(user._id, "kid")}
-                      className="w-full bg-white rounded-2xl p-5 flex flex-col items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-transform"
-                    >
-                      <span className="text-5xl">
-                        {user.avatar ??
-                          KID_AVATARS[i % KID_AVATARS.length]}
+                    <span style={{ color: text, fontSize: "20px", fontWeight: 500, lineHeight: "24px" }}>
+                      {kid.name}
+                    </span>
+                    <div style={{ flex: 1 }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <CoinIcon stroke={stroke} />
+                      <span style={{ color: text, fontSize: "20px", fontWeight: 500 }}>
+                        {kid.points}
                       </span>
-                      <span className="font-semibold text-gray-800">
-                        {user.name}
-                      </span>
-                      <div className="flex items-center gap-1 text-yellow-500 text-sm">
-                        <Star className="w-3 h-3 fill-yellow-500" />
-                        <span>{user.points} pts</span>
-                      </div>
-                    </button>
-                  </motion.div>
-                ))}
-              </div>
+                    </div>
+                  </motion.button>
+                );
+              })}
+              {/* Fill empty slot if odd number of kids */}
+              {row.length === 1 && <div style={{ width: "100%" }} />}
             </div>
-          )}
-
-          {admins.length > 0 && (
-            <div>
-              <h2 className="text-white/70 text-sm font-medium uppercase tracking-wide mb-3 text-center">
-                Parents
-              </h2>
-              <div className="grid grid-cols-2 gap-3">
-                {admins.map((user, i) => (
-                  <motion.div
-                    key={user._id}
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: i * 0.1 + 0.4 }}
-                  >
-                    <button
-                      onClick={() => setPendingAdmin(user)}
-                      className="w-full bg-white/20 rounded-2xl p-5 flex flex-col items-center gap-2 hover:bg-white/30 active:bg-white/40 transition-colors border border-white/30"
-                    >
-                      <Crown className="w-8 h-8 text-yellow-300" />
-                      <span className="font-semibold text-white">
-                        {user.name}
-                      </span>
-                      <span className="text-white/60 text-xs">Admin</span>
-                    </button>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          )}
+          ))}
         </div>
       )}
+
+      {/* Parent button */}
+      {admins.map((admin) => (
+        <motion.button
+          key={admin._id}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setPendingAdmin(admin)}
+          style={{
+            alignItems: "center",
+            backgroundColor: "oklch(88% 0.011 106.6)",
+            borderRadius: "8px",
+            display: "flex",
+            flexShrink: 0,
+            gap: "16px",
+            justifyContent: "center",
+            padding: "16px",
+            width: "100%",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          <span style={{ color: "oklch(39.4% 0.023 107.4)", fontSize: "20px", fontFamily: "var(--font-funnel), system-ui, sans-serif" }}>
+            {admin.name}
+          </span>
+          <LockIcon />
+        </motion.button>
+      ))}
 
       <AnimatePresence>
         {pendingAdmin && (
