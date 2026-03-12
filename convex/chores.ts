@@ -12,9 +12,8 @@ export const list = query({
 });
 
 export const listForKid = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, { userId }) => {
-    const todayDow = new Date().getDay(); // 0=Sun..6=Sat
+  args: { userId: v.id("users"), todayDow: v.number() },
+  handler: async (ctx, { userId, todayDow }) => {
     const allActive = await ctx.db
       .query("chores")
       .filter((q) => q.eq(q.field("isActive"), true))
