@@ -1,11 +1,13 @@
 "use client";
+import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { Crown, Star, Plus } from "lucide-react";
+import { PinPad } from "@/components/PinPad";
 
 const KID_AVATARS = ["🐶", "🐱", "🐰", "🦊", "🐸", "🦁", "🐼", "🐨"];
 const ADMIN_AVATAR = "👑";
@@ -17,6 +19,7 @@ interface UserSelectorProps {
 
 export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
   const createUser = useMutation(api.users.create);
+  const [pendingAdmin, setPendingAdmin] = useState<Doc<"users"> | null>(null);
 
   const kids = users.filter((u) => u.role === "kid");
   const admins = users.filter((u) => u.role === "admin");
@@ -122,7 +125,7 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
                     transition={{ delay: i * 0.1 + 0.4 }}
                   >
                     <button
-                      onClick={() => onSelectUser(user._id, "admin")}
+                      onClick={() => setPendingAdmin(user)}
                       className="w-full bg-white/20 rounded-2xl p-5 flex flex-col items-center gap-2 hover:bg-white/30 active:bg-white/40 transition-colors border border-white/30"
                     >
                       <Crown className="w-8 h-8 text-yellow-300" />
@@ -138,6 +141,19 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
           )}
         </div>
       )}
+
+      <AnimatePresence>
+        {pendingAdmin && (
+          <PinPad
+            adminName={pendingAdmin.name}
+            onSuccess={() => {
+              onSelectUser(pendingAdmin._id, "admin");
+              setPendingAdmin(null);
+            }}
+            onCancel={() => setPendingAdmin(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

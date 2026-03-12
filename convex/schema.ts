@@ -47,4 +47,8 @@ export default defineSchema({
     rewardId: v.id("rewards"),
     openedAt: v.number(),
   }).index("by_user_date", ["userId", "date"]),
+  settings: defineTable({
+    key: v.string(),
+    value: v.string(),
+  }).index("by_key", ["key"]),
 });
