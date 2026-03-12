@@ -135,13 +135,27 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
           {/* Progress bar */}
           <div className="space-y-1.5">
             <p className={`text-sm font-medium ${kidColor.text}`}>Today&apos;s progress</p>
-            <div className="h-[15px] rounded-full overflow-hidden bg-black/25">
+            <div className="relative h-[15px] rounded-full overflow-hidden bg-black/25">
               <motion.div
-                className="h-full bg-stone-950 rounded-full"
+                className="absolute inset-y-0 left-0 flex flex-row overflow-hidden"
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
                 transition={{ type: "spring", stiffness: 200, damping: 24 }}
-              />
+              >
+                {/* Solid fill */}
+                <div className="flex-1 bg-stone-950" style={{ minWidth: 0 }} />
+                {/* Pixel edge — col 1: 2 dots with top/bottom padding */}
+                <div className="w-[3px] shrink-0 flex flex-col gap-[3px] py-[3px]">
+                  <div className="w-[3px] h-[3px] bg-stone-950" />
+                  <div className="w-[3px] h-[3px] bg-stone-950" />
+                </div>
+                {/* Pixel edge — col 2: 3 dots, no padding */}
+                <div className="w-[3px] shrink-0 flex flex-col gap-[3px]">
+                  <div className="w-[3px] h-[3px] bg-stone-950" />
+                  <div className="w-[3px] h-[3px] bg-stone-950" />
+                  <div className="w-[3px] h-[3px] bg-stone-950" />
+                </div>
+              </motion.div>
             </div>
           </div>
 
