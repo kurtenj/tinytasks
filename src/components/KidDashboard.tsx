@@ -16,8 +16,6 @@ import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { getPresetByFile, DEFAULT_CARD_COLOR } from "@/lib/chorePresets";
 import * as LucideIcons from "lucide-react";
 
-const CHORES_REQUIRED = 2;
-
 
 function choreColor(chore: Doc<"chores">): string {
   return (
@@ -238,11 +236,11 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     }
   });
 
+  const todayDow = new Date().getDay();
+  const isWeekend = todayDow === 0 || todayDow === 6;
+
   const user = useQuery(api.users.get, { id: userId });
-const chores = useQuery(api.chores.listForKid, {
-    userId,
-    todayDow: new Date().getDay(),
-  });
+  const chores = useQuery(api.chores.listForKid, { userId, todayDow });
   const completions = useQuery(api.completions.getTodayForUser, {
     userId,
     today,
@@ -255,13 +253,15 @@ const chores = useQuery(api.chores.listForKid, {
 
   const completedIds = new Set(completions?.map((c) => c.choreId) ?? []);
   const completedCount = completedIds.size;
-  const chestUnlocked = completedCount >= CHORES_REQUIRED;
-  const progress = Math.min((completedCount / CHORES_REQUIRED) * 100, 100);
 
   const remaining =
     chores?.filter((c) => !completedIds.has(c._id) && !snoozedIds.has(c._id)) ??
     [];
   const completed = chores?.filter((c) => completedIds.has(c._id)) ?? [];
+
+  const totalVisible = completed.length + remaining.length;
+  const progress = totalVisible > 0 ? Math.min((completedCount / totalVisible) * 100, 100) : 0;
+  const chestUnlocked = remaining.length === 0 && completed.length > 0;
 
   const handleSnooze = (choreId: string) => {
     setSnoozedIds((prev) => {
@@ -293,7 +293,6 @@ const chores = useQuery(api.chores.listForKid, {
     });
   };
 
-
   if (!user || !chores) {
     return (
       <div className="min-h-screen bg-olive-300 flex items-center justify-center">
@@ -303,9 +302,11 @@ const chores = useQuery(api.chores.listForKid, {
   }
 
   return (
-    <div className="relative min-h-screen bg-olive-300 font-funnel">
-      {/* Dark background extension that reaches halfway down the top card */}
-      <div className="absolute top-0 inset-x-0 h-[479px] bg-olive-950 rounded-b-3xl" />
+    <div className="relative min-h-screen bg-olive-300 font-funnel flex flex-col">
+      {/* Dark background extension — only when card deck is visible */}
+      {remaining.length > 0 && (
+        <div className="absolute top-0 inset-x-0 h-[479px] bg-olive-950 rounded-b-3xl" />
+      )}
 
       {/* ── Header ── */}
       <div className="relative bg-olive-950 rounded-b-3xl px-4 pt-4 pb-5">
@@ -372,7 +373,7 @@ const chores = useQuery(api.chores.listForKid, {
       </div>
 
       {/* ── Body ── */}
-      <div className="relative max-w-lg mx-auto">
+      <div className="relative max-w-lg mx-auto flex flex-col flex-1 w-full">
         {/* Card deck */}
         {remaining.length > 0 && (
           <div className="px-4 pt-8">
@@ -419,39 +420,26 @@ const chores = useQuery(api.chores.listForKid, {
           </div>
         )}
 
-        {/* Chest button */}
-        <AnimatePresence>
-          {chestUnlocked && (
-            <motion.div
-              initial={{ scale: 0.85, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 400, damping: 22 }}
-              className="px-4 mt-8"
-            >
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                onClick={() => setShowChest(true)}
-                className="w-full flex items-center justify-center gap-3 bg-white border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09] rounded-3xl py-5 text-stone-950"
-              >
-                <Trophy className="w-5 h-5 shrink-0" />
-                <span className="text-xl font-medium">
-                  {todayOpen ? "View reward" : "Open reward"}
-                </span>
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Empty state — centered between header and completed list */}
+        {remaining.length === 0 && (isWeekend || chores.length > 0) && (
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-xl font-medium text-olive-950/50">
+              {isWeekend
+                ? "No chores today, enjoy the weekend."
+                : "All chores done, good job!"}
+            </p>
+          </div>
+        )}
 
-        {/* Completed checklist */}
+        {/* Completed checklist — pushed to bottom */}
         {completed.length > 0 && (
-          <div className="px-4 mt-8 pb-12">
-            <p className="text-sm font-medium text-olive-950/40 pointer-events-none">
+          <div className="mt-auto px-4 pt-6 pb-24">
+            <p className="text-sm font-medium text-olive-950/40 mb-1 pointer-events-none">
               Completed today
             </p>
-            <div className="space-y-2">
+            <div className="flex flex-col">
               {completed.map((chore) => (
-                <div key={chore._id} className="flex items-center gap-3 py-1">
+                <div key={chore._id} className="flex items-center py-1">
                   <span className="text-olive-950/40 line-through text-sm font-medium">
                     {chore.title}
                   </span>
@@ -461,6 +449,30 @@ const chores = useQuery(api.chores.listForKid, {
           </div>
         )}
       </div>
+
+      {/* Chest button — fixed to bottom */}
+      <AnimatePresence>
+        {chestUnlocked && (
+          <motion.div
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 22 }}
+            className="fixed bottom-0 inset-x-0 p-4"
+          >
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              onClick={() => setShowChest(true)}
+              className="w-full flex items-center justify-center gap-3 bg-white border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09] rounded-3xl py-4 text-stone-950"
+            >
+              <Trophy className="w-5 h-5 shrink-0" />
+              <span className="text-xl font-medium">
+                {todayOpen ? "View reward" : "Open reward"}
+              </span>
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showChest && (

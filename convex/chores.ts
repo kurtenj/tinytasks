@@ -11,9 +11,12 @@ export const list = query({
   },
 });
 
+const isWeekend = (dow: number) => dow === 0 || dow === 6;
+
 export const listForKid = query({
   args: { userId: v.id("users"), todayDow: v.number() },
   handler: async (ctx, { userId, todayDow }) => {
+    if (isWeekend(todayDow)) return [];
     const allActive = await ctx.db
       .query("chores")
       .filter((q) => q.eq(q.field("isActive"), true))
@@ -101,6 +104,10 @@ export const getKidsSummary = query({
       .query("completions")
       .withIndex("by_date", (q) => q.eq("date", today))
       .collect();
+
+    if (isWeekend(todayDow)) {
+      return kids.map((kid) => ({ userId: kid._id, remaining: 0 }));
+    }
 
     return kids.map((kid) => {
       const kidChores = allActive.filter((chore) => {
