@@ -6,12 +6,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Delete, X } from "lucide-react";
 
 interface PinPadProps {
-  adminName: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export function PinPad({ adminName, onSuccess, onCancel }: PinPadProps) {
+export function PinPad({ onSuccess, onCancel }: PinPadProps) {
   const savedPin = useQuery(api.settings.getPin);
   const savePin = useMutation(api.settings.setPin);
 
@@ -76,7 +75,7 @@ export function PinPad({ adminName, onSuccess, onCancel }: PinPadProps) {
 
   const title = isSetup
     ? phase === "enter" ? "Set Admin PIN" : "Confirm PIN"
-    : `Welcome, ${adminName}`;
+    : "Parent Access";
 
   const subtitle = isSetup
     ? phase === "enter"
@@ -103,7 +102,7 @@ export function PinPad({ adminName, onSuccess, onCancel }: PinPadProps) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="font-knewave text-xl text-stone-950">{title}</h2>
+            <h2 className="text-xl font-medium text-stone-950">{title}</h2>
             <p className="text-sm text-stone-500 mt-0.5">{subtitle}</p>
           </div>
           <button onClick={onCancel} className="text-stone-400 hover:text-stone-700 p-1 transition-colors">
@@ -164,7 +163,7 @@ export function PinPad({ adminName, onSuccess, onCancel }: PinPadProps) {
               <button
                 key={i}
                 onClick={() => handleDigit(k)}
-                className="h-14 text-xl font-semibold text-stone-950 rounded-2xl bg-white border-2 border-stone-200 hover:border-stone-950 hover:bg-amber-50 active:scale-[0.97] transition-all"
+                className="h-14 text-xl font-semibold text-stone-950 rounded-2xl bg-white border-2 border-stone-200 hover:border-stone-950 active:scale-[0.97] transition-all"
               >
                 {k}
               </button>

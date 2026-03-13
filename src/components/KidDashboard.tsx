@@ -309,7 +309,12 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
       )}
 
       {/* ── Header ── */}
-      <div className="relative bg-olive-950 rounded-b-3xl px-4 pt-4 pb-5">
+      <motion.div
+        initial={{ y: -24, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 400, damping: 28 }}
+        className="relative bg-olive-950 rounded-b-3xl px-4 pt-4 pb-5"
+      >
         <div className="max-w-lg mx-auto space-y-4">
           {/* Back */}
           <button
@@ -341,15 +346,19 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                 transition={{ type: "spring", stiffness: 200, damping: 24 }}
               >
                 <div className="flex-1 bg-white" style={{ minWidth: 0 }} />
-                <div className="w-[3px] shrink-0 flex flex-col gap-[3px] py-[3px]">
-                  <div className="w-[3px] h-[3px] bg-white" />
-                  <div className="w-[3px] h-[3px] bg-white" />
-                </div>
-                <div className="w-[3px] shrink-0 flex flex-col gap-[3px]">
-                  <div className="w-[3px] h-[3px] bg-white" />
-                  <div className="w-[3px] h-[3px] bg-white" />
-                  <div className="w-[3px] h-[3px] bg-white" />
-                </div>
+                {progress < 100 && (
+                  <>
+                    <div className="w-[3px] shrink-0 flex flex-col gap-[3px] py-[3px]">
+                      <div className="w-[3px] h-[3px] bg-white" />
+                      <div className="w-[3px] h-[3px] bg-white" />
+                    </div>
+                    <div className="w-[3px] shrink-0 flex flex-col gap-[3px]">
+                      <div className="w-[3px] h-[3px] bg-white" />
+                      <div className="w-[3px] h-[3px] bg-white" />
+                      <div className="w-[3px] h-[3px] bg-white" />
+                    </div>
+                  </>
+                )}
               </motion.div>
             </div>
           </div>
@@ -370,7 +379,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ── Body ── */}
       <div className="relative max-w-lg mx-auto flex flex-col flex-1 w-full">
@@ -454,9 +463,9 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
       <AnimatePresence>
         {chestUnlocked && (
           <motion.div
-            initial={{ scale: 0.85, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 400, damping: 22 }}
+            initial={{ y: 24, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 28 }}
             className="fixed bottom-0 inset-x-0 p-4"
           >
             <motion.button

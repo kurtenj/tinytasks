@@ -4,13 +4,13 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { motion } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { Plus, Trash2, LogOut, RotateCcw, Gift, CheckSquare, Users, UserPlus, Pencil } from "lucide-react";
+import { Plus, Trash2, LogOut, RotateCcw, Gift, CheckSquare, UserPlus, Pencil } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { getPresetByFile, DEFAULT_CARD_COLOR } from "@/lib/chorePresets";
 import { AddChoreDialog } from "@/components/AddChoreDialog";
 import { AddRewardDialog } from "@/components/AddRewardDialog";
 
-type Tab = "chores" | "rewards" | "progress" | "kids";
+type Tab = "chores" | "rewards" | "kids";
 
 /** Small square showing the chore illustration or Lucide icon fallback */
 function ChoreAvatar({ imageUrl, icon, color }: { imageUrl?: string; icon?: string; color: string }) {
@@ -54,7 +54,6 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   const rewards         = useQuery(api.rewards.listAll);
   const kids            = useQuery(api.users.getKids);
   const todayCompletions = useQuery(api.completions.getTodayAll, { today });
-
   const removeChore  = useMutation(api.chores.remove);
   const removeReward = useMutation(api.rewards.remove);
   const resetDay     = useMutation(api.completions.resetDay);
@@ -64,8 +63,6 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   const removeKid    = useMutation(api.users.remove);
 
   const completedChoreIds = new Set(todayCompletions?.map((c) => c.choreId) ?? []);
-  const getKidCompletions = (kidId: Id<"users">) =>
-    todayCompletions?.filter((c) => c.userId === kidId).length ?? 0;
 
   const handleAddKid = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,33 +81,32 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   const TABS = [
     { id: "chores",   icon: CheckSquare, label: "Chores"   },
     { id: "rewards",  icon: Gift,        label: "Rewards"  },
-    { id: "progress", icon: Users,       label: "Progress" },
     { id: "kids",     icon: UserPlus,    label: "Kids"     },
   ] as const;
 
   return (
-    <div className="min-h-screen bg-stone-100 font-funnel">
+    <div className="min-h-screen bg-olive-300 font-funnel">
       {/* Header */}
-      <div className="bg-stone-950 text-white px-4 pb-4">
+      <div className="bg-olive-950 text-white px-4 pb-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between pt-5 mb-4">
-            <h1 className="font-knewave text-2xl">Admin Panel</h1>
+            <h1 className="text-xl font-medium">Admin Panel</h1>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => resetDay({ today })}
-                className="flex items-center gap-1.5 text-stone-400 hover:text-white text-sm py-1.5 px-3 rounded-lg hover:bg-stone-800 transition-colors"
+                className="flex items-center gap-1.5 text-white/50 hover:text-white text-sm py-1.5 px-3 rounded-lg hover:bg-white/10 transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 Reset Day
               </button>
-              <button onClick={onSwitchUser} className="text-stone-500 hover:text-white p-2">
+              <button onClick={onSwitchUser} className="text-white/50 hover:text-white p-2 transition-colors">
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-stone-800 rounded-xl p-1">
+          <div className="flex gap-1 bg-olive-950/50 rounded-xl p-1">
             {TABS.map(({ id, icon: Icon, label }) => (
               <button
                 key={id}
@@ -263,42 +259,6 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                 <div className="text-center py-12 text-stone-400">
                   <Gift className="w-10 h-10 mx-auto mb-2 opacity-30" />
                   <p>No rewards yet. Add some to the treasure chest!</p>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-
-        {/* ── Progress Tab ── */}
-        {tab === "progress" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h2 className="font-semibold text-stone-950 mb-4">Today&apos;s Progress</h2>
-            <div className="space-y-4">
-              {kids?.map((kid) => {
-                const completedToday = getKidCompletions(kid._id);
-                const total = chores?.filter((c) => c.isActive).length ?? 0;
-                const pct = total ? (completedToday / total) * 100 : 0;
-                return (
-                  <div key={kid._id} className="bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-5">
-                    <div className="flex justify-between items-center mb-1">
-                      <p className="font-semibold text-stone-950">{kid.name}</p>
-                      <span className="text-sm text-stone-400">{completedToday}/{total} chores</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-stone-400 mb-3">
-                      <span className="flex items-center gap-1"><LucideIcons.Star className="w-3 h-3" /> {kid.points} pts</span>
-                      <span className="flex items-center gap-1"><LucideIcons.Flame className="w-3 h-3" /> {kid.streak} day streak</span>
-                      <span className="flex items-center gap-1"><LucideIcons.Trophy className="w-3 h-3" /> Level {kid.level}</span>
-                    </div>
-                    <div className="w-full bg-stone-100 rounded-full h-2.5 border border-stone-200">
-                      <div className="bg-amber-400 h-2.5 rounded-full transition-all" style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
-              {!kids?.length && (
-                <div className="text-center py-12 text-stone-400">
-                  <Users className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                  <p>No kids added yet.</p>
                 </div>
               )}
             </div>

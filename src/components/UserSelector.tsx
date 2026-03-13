@@ -203,33 +203,25 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
         </div>
       )}
 
-      {/* Parent button(s) */}
-      {admins.map((admin) => (
+      {/* Parent button */}
+      {admins[0] && (
         <motion.button
-          key={admin._id}
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{
-            delay: 0.3,
-            scale: { type: "spring", stiffness: 400, damping: 17 },
-          }}
+          transition={{ type: "spring", stiffness: 400, damping: 28, delay: 0.3 }}
           whileTap={{ scale: 0.97 }}
-          onClick={() => setPendingAdmin(admin)}
+          onClick={() => setPendingAdmin(admins[0])}
           className="flex items-center justify-center gap-2 bg-stone-200 rounded-3xl py-4 w-full shrink-0 hover:bg-stone-300 transition-colors"
         >
           <ParentsIcon />
           <span className="text-stone-950/50 text-xl">Parents</span>
         </motion.button>
-      ))}
+      )}
 
       <AnimatePresence>
         {pendingAdmin && (
           <PinPad
-            adminName={pendingAdmin.name}
-            onSuccess={() => {
-              onSelectUser(pendingAdmin._id, "admin");
-              setPendingAdmin(null);
-            }}
+            onSuccess={() => { onSelectUser(pendingAdmin._id, "admin"); setPendingAdmin(null); }}
             onCancel={() => setPendingAdmin(null)}
           />
         )}
