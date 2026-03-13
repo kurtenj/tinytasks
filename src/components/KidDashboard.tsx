@@ -30,7 +30,7 @@ function choreColor(chore: Doc<"chores">): string {
 }
 
 function ChoreIcon({ iconName, className }: { iconName: string; className?: string }) {
-  const Icon = (LucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[iconName];
+  const Icon = (LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[iconName];
   if (!Icon) return null;
   return <Icon className={className} />;
 }

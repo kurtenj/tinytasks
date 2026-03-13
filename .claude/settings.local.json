@@ -16,7 +16,8 @@
       "Bash(node -e \"const l = require\\(''C:/Users/Jonathan/Workspace/tinytasks/node_modules/lucide-react''\\); console.log\\(''Pencil:'', !!l.Pencil, ''UserPlus:'', !!l.UserPlus, ''Edit2:'', !!l.Edit2\\)\")",
       "Bash(node -e \"const l = require\\(''lucide-react''\\); console.log\\([''Trash2'',''Utensils'',''UtensilsCrossed'',''BedDouble'',''Bed'',''Shirt'',''Sparkles'',''Droplets'',''Droplet'',''Dog'',''BookOpen'',''Leaf'',''Star'',''Smile'',''ShowerHead'',''Wind'',''Brush'',''Eraser''].filter\\(n => l[n] !== undefined\\).join\\('', ''\\)\\)\")",
       "Bash(node -e \"const l = require\\(''lucide-react''\\); const names = [''Trash2'',''Utensils'',''UtensilsCrossed'',''BedDouble'',''Bed'',''Shirt'',''Sparkles'',''Droplets'',''Droplet'',''Dog'',''BookOpen'',''Leaf'',''Star'',''Smile'',''ShowerHead'',''Wind'',''Brush'']; console.log\\(names.filter\\(function\\(n\\){return l[n]!==undefined}\\).join\\('', ''\\)\\)\")",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(npm run build)"
     ]
   }
 }
