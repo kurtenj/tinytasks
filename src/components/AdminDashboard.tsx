@@ -49,10 +49,11 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   const [renamingKidId,  setRenamingKidId]  = useState<Id<"users"> | null>(null);
   const [renameValue,    setRenameValue]    = useState("");
 
+  const today           = new Date().toLocaleDateString("en-CA");
   const chores          = useQuery(api.chores.listAll);
   const rewards         = useQuery(api.rewards.listAll);
   const kids            = useQuery(api.users.getKids);
-  const todayCompletions = useQuery(api.completions.getTodayAll);
+  const todayCompletions = useQuery(api.completions.getTodayAll, { today });
 
   const removeChore  = useMutation(api.chores.remove);
   const removeReward = useMutation(api.rewards.remove);
@@ -96,7 +97,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
             <h1 className="font-knewave text-2xl">Admin Panel</h1>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => resetDay()}
+                onClick={() => resetDay({ today })}
                 className="flex items-center gap-1.5 text-stone-400 hover:text-white text-sm py-1.5 px-3 rounded-lg hover:bg-stone-800 transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />

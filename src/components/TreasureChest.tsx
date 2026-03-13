@@ -8,6 +8,7 @@ import type { Doc, Id } from "../../convex/_generated/dataModel";
 
 interface TreasureChestProps {
   userId: Id<"users">;
+  today: string;
   existingOpen: Doc<"treasureOpens"> | null;
   onClose: () => void;
 }
@@ -18,7 +19,7 @@ const RARITY_STYLES = {
   common: { badge: "bg-emerald-100 text-emerald-700 border border-emerald-300", label: "⚡ Common" },
 };
 
-export function TreasureChest({ userId, existingOpen, onClose }: TreasureChestProps) {
+export function TreasureChest({ userId, today, existingOpen, onClose }: TreasureChestProps) {
   const [phase, setPhase] = useState<"closed" | "opening" | "revealed">(
     existingOpen ? "revealed" : "closed"
   );
@@ -39,7 +40,7 @@ export function TreasureChest({ userId, existingOpen, onClose }: TreasureChestPr
     });
     const reward = weighted[Math.floor(Math.random() * weighted.length)];
 
-    await openChest({ userId, rewardId: reward._id });
+    await openChest({ userId, rewardId: reward._id, today });
 
     if (reward.type === "points") {
       await updatePoints({ userId, points: parseInt(reward.value) || 10 });

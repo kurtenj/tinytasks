@@ -2,9 +2,8 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const getTodayForUser = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, { userId }) => {
-    const today = new Date().toISOString().split("T")[0];
+  args: { userId: v.id("users"), today: v.string() },
+  handler: async (ctx, { userId, today }) => {
     return await ctx.db
       .query("completions")
       .withIndex("by_user_date", (q) =>
@@ -15,9 +14,8 @@ export const getTodayForUser = query({
 });
 
 export const getTodayAll = query({
-  args: {},
-  handler: async (ctx) => {
-    const today = new Date().toISOString().split("T")[0];
+  args: { today: v.string() },
+  handler: async (ctx, { today }) => {
     return await ctx.db
       .query("completions")
       .withIndex("by_date", (q) => q.eq("date", today))
@@ -29,9 +27,9 @@ export const complete = mutation({
   args: {
     choreId: v.id("chores"),
     userId: v.id("users"),
+    today: v.string(),
   },
-  handler: async (ctx, { choreId, userId }) => {
-    const today = new Date().toISOString().split("T")[0];
+  handler: async (ctx, { choreId, userId, today }) => {
     // Check if already completed today
     const existing = await ctx.db
       .query("completions")
@@ -55,9 +53,9 @@ export const uncomplete = mutation({
   args: {
     choreId: v.id("chores"),
     userId: v.id("users"),
+    today: v.string(),
   },
-  handler: async (ctx, { choreId, userId }) => {
-    const today = new Date().toISOString().split("T")[0];
+  handler: async (ctx, { choreId, userId, today }) => {
     const existing = await ctx.db
       .query("completions")
       .withIndex("by_user_date", (q) =>
@@ -70,9 +68,8 @@ export const uncomplete = mutation({
 });
 
 export const resetDay = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const today = new Date().toISOString().split("T")[0];
+  args: { today: v.string() },
+  handler: async (ctx, { today }) => {
     const todayCompletions = await ctx.db
       .query("completions")
       .withIndex("by_date", (q) => q.eq("date", today))

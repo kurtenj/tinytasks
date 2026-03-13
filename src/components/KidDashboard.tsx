@@ -186,11 +186,12 @@ function ChoreCard({ chore, color, onComplete }: ChoreCardProps) {
 export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const [showChest, setShowChest] = useState(false);
 
+  const today       = new Date().toLocaleDateString("en-CA");
   const user        = useQuery(api.users.get, { id: userId });
   const allUsers    = useQuery(api.users.list);
   const chores      = useQuery(api.chores.listForKid, { userId, todayDow: new Date().getDay() });
-  const completions = useQuery(api.completions.getTodayForUser, { userId });
-  const todayOpen   = useQuery(api.treasureOpens.getTodayForUser, { userId });
+  const completions = useQuery(api.completions.getTodayForUser, { userId, today });
+  const todayOpen   = useQuery(api.treasureOpens.getTodayForUser, { userId, today });
   const complete    = useMutation(api.completions.complete);
 
   const completedIds   = new Set(completions?.map((c) => c.choreId) ?? []);
@@ -314,7 +315,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                     key={frontChore._id}
                     chore={frontChore}
                     color={getCardColor(frontChore)}
-                    onComplete={() => complete({ choreId: frontChore._id, userId })}
+                    onComplete={() => complete({ choreId: frontChore._id, userId, today })}
                   />
                 )}
               </AnimatePresence>
@@ -371,7 +372,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
 
       <AnimatePresence>
         {showChest && (
-          <TreasureChest userId={userId} existingOpen={todayOpen ?? null} onClose={() => setShowChest(false)} />
+          <TreasureChest userId={userId} today={today} existingOpen={todayOpen ?? null} onClose={() => setShowChest(false)} />
         )}
       </AnimatePresence>
     </div>

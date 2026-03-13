@@ -85,3 +85,40 @@ export const remove = mutation({
     await ctx.db.delete(id);
   },
 });
+
+export const getKidsSummary = query({
+  args: { today: v.string(), todayDow: v.number() },
+  handler: async (ctx, { today, todayDow }) => {
+    const kids = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("role"), "kid"))
+      .collect();
+    const allActive = await ctx.db
+      .query("chores")
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .collect();
+    const todayCompletions = await ctx.db
+      .query("completions")
+      .withIndex("by_date", (q) => q.eq("date", today))
+      .collect();
+
+    return kids.map((kid) => {
+      const kidChores = allActive.filter((chore) => {
+        if (chore.assignedTo && chore.assignedTo.length > 0) {
+          if (!chore.assignedTo.includes(kid._id)) return false;
+        }
+        const type = chore.scheduleType ?? "floating";
+        if (type === "repeating") {
+          if (!chore.daysOfWeek || chore.daysOfWeek.length === 0) return true;
+          return chore.daysOfWeek.includes(todayDow);
+        }
+        return true;
+      });
+      const completedIds = new Set(
+        todayCompletions.filter((c) => c.userId === kid._id).map((c) => c.choreId)
+      );
+      const remaining = kidChores.filter((c) => !completedIds.has(c._id)).length;
+      return { userId: kid._id, remaining };
+    });
+  },
+});
