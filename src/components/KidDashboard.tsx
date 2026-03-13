@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import {
@@ -10,6 +10,7 @@ import {
   useDragControls,
   animate,
 } from "framer-motion";
+import { ArrowLeft, HandCoins, Flame, Star } from "lucide-react";
 import { TreasureChest } from "@/components/TreasureChest";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { getPresetByFile, DEFAULT_CARD_COLOR } from "@/lib/chorePresets";
@@ -19,10 +20,10 @@ const CHORES_REQUIRED = 2;
 
 // Matches CARD_COLORS order in UserSelector
 const HEADER_COLORS = [
-  { bg: "bg-amber-400",   stroke: "#0c0c09", text: "text-stone-950" },
-  { bg: "bg-emerald-700", stroke: "#ffffff", text: "text-white"      },
-  { bg: "bg-rose-400",    stroke: "#0c0c09", text: "text-stone-950"  },
-  { bg: "bg-sky-500",     stroke: "#ffffff", text: "text-white"      },
+  { bg: "bg-amber-400",   text: "text-stone-950" },
+  { bg: "bg-emerald-700", text: "text-white"      },
+  { bg: "bg-rose-400",    text: "text-stone-950"  },
+  { bg: "bg-sky-500",     text: "text-white"      },
 ];
 
 function choreColor(chore: Doc<"chores">): string {
@@ -35,66 +36,25 @@ function ChoreIcon({ iconName, className }: { iconName: string; className?: stri
   return <Icon className={className} />;
 }
 
+function useLiveClock() {
+  const [label, setLabel] = useState(() => formatClock());
+  useEffect(() => {
+    const id = setInterval(() => setLabel(formatClock()), 10000);
+    return () => clearInterval(id);
+  }, []);
+  return label;
+}
+
+function formatClock(): string {
+  const now = new Date();
+  const day = now.toLocaleDateString("en-US", { weekday: "long" });
+  const time = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return `${day}, ${time}`;
+}
+
 interface KidDashboardProps {
   userId: Id<"users">;
   onSwitchUser: () => void;
-}
-
-function BackArrowIcon({ stroke }: { stroke: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M7.01 12H7"   stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M9.01 10H9"   stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M9.01 14H9"   stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M11.01 16H11" stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M11.01 8H11"  stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M13.01 6H13"  stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M13.01 18H13" stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M15.01 20H15" stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M15.01 4H15"  stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-    </svg>
-  );
-}
-
-function CoinIcon({ stroke }: { stroke: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M18 18L16 18"     stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M6 18L10 18"      stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M20 16.01L20 16"  stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M12 16.01L12 16"  stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M4 16.01L4 16"    stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M22 14L22 10"     stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M14 10L14 14"     stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M2 10L2 14"       stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M20 8.01L20 8"    stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M12 8.01L12 8"    stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M4 8.01L4 8"      stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M18 6L16 6"       stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M6 6L10 6"        stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-    </svg>
-  );
-}
-
-function LevelIcon({ stroke }: { stroke: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M12 2.01L12 2"   stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M9 19.01L9 19"   stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M15 19.01L15 19" stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M4 12.01L4 12"   stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M20 12.01L20 12" stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M4 17V21H7"      stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M20 17V21H17"    stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M11 17H13"       stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M8 8H2V10"       stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M16 8L22 8V10"   stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M18 14V15"       stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M6 14V15"        stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M14 4V6"         stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-      <path d="M10 4V6"         stroke={stroke} strokeWidth="2" strokeLinecap="square" />
-    </svg>
-  );
 }
 
 // ── ChoreCard ─────────────────────────────────────────────────────────────────
@@ -108,13 +68,11 @@ interface ChoreCardProps {
 function ChoreCard({ chore, color, onComplete }: ChoreCardProps) {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-250, 0, 250], [-18, 0, 18]);
-  // Swipe-left overlay: fully visible at -120px
   const swipeOpacity = useTransform(x, [0, -60, -120], [0, 0.35, 1]);
 
   const dragControls = useDragControls();
 
   const doComplete = () => {
-    // Fly the card off to the left, then fire the mutation
     animate(x, -520, { ease: [0.4, 0, 0.9, 1], duration: 0.28 });
     setTimeout(onComplete, 210);
   };
@@ -123,17 +81,16 @@ function ChoreCard({ chore, color, onComplete }: ChoreCardProps) {
     <motion.div
       drag="x"
       dragControls={dragControls}
-      dragListener={false}          // drag starts only via dragControls.start()
+      dragListener={false}
       style={{ x, rotate, backgroundColor: color }}
       dragConstraints={{ left: -520, right: 20 }}
-      dragElastic={0.04}            // near 1:1 finger tracking within constraints
+      dragElastic={0.04}
       onDragEnd={(_, info) => {
         const isTap   = Math.abs(info.offset.x) < 6 && Math.abs(info.velocity.x) < 80;
         const isSwipe = info.offset.x < -280 || info.velocity.x < -800;
         if (isTap || isSwipe) {
           doComplete();
         } else {
-          // Spring back to resting position with a bit of overshoot
           animate(x, 0, { type: "spring", stiffness: 320, damping: 22 });
         }
       }}
@@ -153,7 +110,6 @@ function ChoreCard({ chore, color, onComplete }: ChoreCardProps) {
           draggable={false}
         />
       ) : (
-        /* No image: show centered Lucide icon */
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           {chore.icon ? (
             <ChoreIcon iconName={chore.icon} className="w-24 h-24 text-stone-950/40" />
@@ -169,13 +125,17 @@ function ChoreCard({ chore, color, onComplete }: ChoreCardProps) {
         <span className="text-6xl font-bold text-emerald-800">✓</span>
       </motion.div>
 
-      {/* Bottom title bar */}
-      <div className="absolute bottom-0 inset-x-0 px-5 pt-6 pb-5 bg-gradient-to-t from-black/25 to-transparent pointer-events-none">
-        <p className="text-stone-950 text-xl font-semibold leading-tight">{chore.title}</p>
+      {/* Hint — top of card */}
+      <p className="absolute top-6 left-6 text-sm font-semibold text-stone-950/50 pointer-events-none">
+        Tap or swipe to complete
+      </p>
+
+      {/* Title + description — bottom of card */}
+      <div className="absolute bottom-0 inset-x-0 px-6 pb-6 pointer-events-none">
+        <p className="text-stone-950 text-xl font-medium leading-tight">{chore.title}</p>
         {chore.description && (
-          <p className="text-stone-950/60 text-sm mt-0.5">{chore.description}</p>
+          <p className="text-stone-950/50 text-sm font-semibold mt-1">{chore.description}</p>
         )}
-        <p className="text-stone-950/30 text-xs mt-1.5 tracking-wide">tap or swipe left to complete</p>
       </div>
     </motion.div>
   );
@@ -185,6 +145,7 @@ function ChoreCard({ chore, color, onComplete }: ChoreCardProps) {
 
 export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const [showChest, setShowChest] = useState(false);
+  const clockLabel = useLiveClock();
 
   const today       = new Date().toLocaleDateString("en-CA");
   const user        = useQuery(api.users.get, { id: userId });
@@ -211,8 +172,6 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const kidIndex = kids.findIndex((k) => k._id === userId);
   const kidColor = HEADER_COLORS[Math.max(0, kidIndex) % HEADER_COLORS.length];
 
-  const getCardColor = (chore: Doc<"chores">) => choreColor(chore);
-
   if (!user || !chores) {
     return (
       <div className="min-h-screen bg-stone-100 flex items-center justify-center">
@@ -225,19 +184,26 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     <div className="min-h-screen bg-stone-100 font-funnel">
 
       {/* ── Header ── */}
-      <div className={`${kidColor.bg} shadow-[0px_5px_0px_#0c0c09] px-4 pt-4 pb-5`}>
+      <div className={`${kidColor.bg} rounded-b-3xl px-4 pt-4 pb-5`}>
         <div className="max-w-lg mx-auto space-y-4">
+
           {/* Back */}
           <button onClick={onSwitchUser} className="active:scale-[0.97] transition-transform">
-            <BackArrowIcon stroke={kidColor.stroke} />
+            <ArrowLeft className="w-5 h-5" />
           </button>
 
-          {/* Name */}
-          <p className={`text-xl font-medium ${kidColor.text}`}>{user.name}</p>
+          {/* Avatar + Name */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-black/25 shrink-0" />
+            <p className={`text-[28px] leading-[34px] font-medium ${kidColor.text}`}>{user.name}</p>
+          </div>
 
-          {/* Progress bar */}
-          <div className="space-y-1.5">
-            <p className={`text-sm font-medium ${kidColor.text}`}>Today&apos;s progress</p>
+          {/* Progress label + clock, then bar */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <p className={`text-sm font-semibold ${kidColor.text}`}>Progress</p>
+              <p className={`text-sm font-semibold ${kidColor.text}`}>{clockLabel}</p>
+            </div>
             <div className="relative h-[15px] rounded-full overflow-hidden bg-black/25">
               <motion.div
                 className="absolute inset-y-0 left-0 flex flex-row overflow-hidden"
@@ -262,15 +228,15 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
           {/* Stats */}
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
-              <CoinIcon stroke={kidColor.stroke} />
+              <HandCoins className={`w-5 h-5 opacity-25`} />
               <span className={`text-xl font-medium ${kidColor.text}`}>{user.points}</span>
             </div>
             <div className="flex items-center gap-2">
-              <CoinIcon stroke={kidColor.stroke} />
+              <Flame className={`w-5 h-5 opacity-25`} />
               <span className={`text-xl font-medium ${kidColor.text}`}>{user.streak} days</span>
             </div>
             <div className="flex items-center gap-2">
-              <LevelIcon stroke={kidColor.stroke} />
+              <Star className={`w-5 h-5 opacity-25`} />
               <span className={`text-xl font-medium ${kidColor.text}`}>{user.level}</span>
             </div>
           </div>
@@ -280,41 +246,36 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
       {/* ── Body ── */}
       <div className="max-w-lg mx-auto">
 
-        {/* Card deck
-            Outer padding pt-10 (40px) ensures the -top-8 back card (32px above container)
-            is always 8px below the header — never overlapping it. */}
+        {/* Card deck */}
         {remaining.length > 0 && (
           <div className="px-4 pt-10">
             <div className="relative h-[420px]">
-              {/* Back card — peeks 32px above the front */}
               {backChore && (
                 <div
                   className="absolute -top-8 rounded-3xl border-4 border-stone-950"
                   style={{
-                    insetInline: "2rem",          // 32px each side → narrower than front
+                    insetInline: "2rem",
                     height: 420,
-                    backgroundColor: getCardColor(backChore),
+                    backgroundColor: choreColor(backChore),
                   }}
                 />
               )}
-              {/* Mid card — peeks 16px above the front */}
               {midChore && (
                 <div
                   className="absolute -top-4 rounded-3xl border-4 border-stone-950"
                   style={{
-                    insetInline: "1rem",          // 16px each side
+                    insetInline: "1rem",
                     height: 420,
-                    backgroundColor: getCardColor(midChore),
+                    backgroundColor: choreColor(midChore),
                   }}
                 />
               )}
-              {/* Front card — draggable, fills container */}
               <AnimatePresence>
                 {frontChore && (
                   <ChoreCard
                     key={frontChore._id}
                     chore={frontChore}
-                    color={getCardColor(frontChore)}
+                    color={choreColor(frontChore)}
                     onComplete={() => complete({ choreId: frontChore._id, userId, today })}
                   />
                 )}
@@ -358,10 +319,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                       <path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="square" strokeLinejoin="miter" />
                     </svg>
                   </div>
-                  <span className="text-stone-400 line-through text-sm">
-                    {chore.icon && <span className="mr-1.5">{chore.icon}</span>}
-                    {chore.title}
-                  </span>
+                  <span className="text-stone-400 line-through text-sm">{chore.title}</span>
                 </div>
               ))}
             </div>
