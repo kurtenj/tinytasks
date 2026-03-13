@@ -18,13 +18,6 @@ import * as LucideIcons from "lucide-react";
 
 const CHORES_REQUIRED = 2;
 
-// Matches CARD_COLORS order in UserSelector
-const HEADER_COLORS = [
-  { bg: "bg-amber-400", text: "text-olive-950" },
-  { bg: "bg-emerald-700", text: "text-white" },
-  { bg: "bg-rose-400", text: "text-olive-950" },
-  { bg: "bg-sky-500", text: "text-white" },
-];
 
 function choreColor(chore: Doc<"chores">): string {
   return (
@@ -246,8 +239,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   });
 
   const user = useQuery(api.users.get, { id: userId });
-  const allUsers = useQuery(api.users.list);
-  const chores = useQuery(api.chores.listForKid, {
+const chores = useQuery(api.chores.listForKid, {
     userId,
     todayDow: new Date().getDay(),
   });
@@ -301,38 +293,35 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     });
   };
 
-  // Match kid's color to their position in the kids list (same order as UserSelector)
-  const kids = allUsers?.filter((u) => u.role === "kid") ?? [];
-  const kidIndex = kids.findIndex((k) => k._id === userId);
-  const kidColor = HEADER_COLORS[Math.max(0, kidIndex) % HEADER_COLORS.length];
 
   if (!user || !chores) {
     return (
-      <div className="min-h-screen bg-olive-100 flex items-center justify-center">
+      <div className="min-h-screen bg-olive-300 flex items-center justify-center">
         <div className="text-olive-400 animate-pulse text-4xl">⭐</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-olive-100 font-funnel">
+    <div className="relative min-h-screen bg-olive-300 font-funnel">
+      {/* Dark background extension that reaches halfway down the top card */}
+      <div className="absolute top-0 inset-x-0 h-[479px] bg-olive-950 rounded-b-3xl" />
+
       {/* ── Header ── */}
-      <div className={`${kidColor.bg} rounded-b-3xl px-4 pt-4 pb-5`}>
+      <div className="relative bg-olive-950 rounded-b-3xl px-4 pt-4 pb-5">
         <div className="max-w-lg mx-auto space-y-4">
           {/* Back */}
           <button
             onClick={onSwitchUser}
             className="active:scale-[0.97] transition-transform"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5 text-white" />
           </button>
 
           {/* Avatar + Name */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-olive-950/25 shrink-0" />
-            <p
-              className={`text-[28px] leading-[34px] font-medium ${kidColor.text}`}
-            >
+            <div className="w-10 h-10 rounded-full bg-white/25 shrink-0" />
+            <p className="text-[32px] leading-10 font-knewave text-white">
               {user.name}
             </p>
           </div>
@@ -340,61 +329,53 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
           {/* Progress label + clock, then bar */}
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <p className={`text-sm font-medium ${kidColor.text}`}>Progress</p>
-              <p className={`text-sm font-medium ${kidColor.text}`}>
-                {clockLabel}
-              </p>
+              <p className="text-sm font-semibold text-white">Progress</p>
+              <p className="text-sm font-semibold text-white">{clockLabel}</p>
             </div>
-            <div className="relative h-[15px] rounded-full overflow-hidden bg-olive-950/25">
+            <div className="relative h-[15px] rounded-full overflow-hidden bg-white/25">
               <motion.div
                 className="absolute inset-y-0 left-0 flex flex-row overflow-hidden"
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
                 transition={{ type: "spring", stiffness: 200, damping: 24 }}
               >
-                <div className="flex-1 bg-olive-950" style={{ minWidth: 0 }} />
+                <div className="flex-1 bg-white" style={{ minWidth: 0 }} />
                 <div className="w-[3px] shrink-0 flex flex-col gap-[3px] py-[3px]">
-                  <div className="w-[3px] h-[3px] bg-olive-950" />
-                  <div className="w-[3px] h-[3px] bg-olive-950" />
+                  <div className="w-[3px] h-[3px] bg-white" />
+                  <div className="w-[3px] h-[3px] bg-white" />
                 </div>
                 <div className="w-[3px] shrink-0 flex flex-col gap-[3px]">
-                  <div className="w-[3px] h-[3px] bg-olive-950" />
-                  <div className="w-[3px] h-[3px] bg-olive-950" />
-                  <div className="w-[3px] h-[3px] bg-olive-950" />
+                  <div className="w-[3px] h-[3px] bg-white" />
+                  <div className="w-[3px] h-[3px] bg-white" />
+                  <div className="w-[3px] h-[3px] bg-white" />
                 </div>
               </motion.div>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 text-white">
             <div className="flex items-center gap-2">
-              <HandCoins className={`w-4 h-4 opacity-25`} />
-              <span className={`text-lg font-medium ${kidColor.text}`}>
-                {user.points}
-              </span>
+              <HandCoins className="w-5 h-5 opacity-25" />
+              <span className="text-xl font-medium">{user.points}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Flame className={`w-4 h-4 opacity-25`} />
-              <span className={`text-lg font-medium ${kidColor.text}`}>
-                {user.streak} days
-              </span>
+              <Flame className="w-5 h-5 opacity-25" />
+              <span className="text-xl font-medium">{user.streak} days</span>
             </div>
             <div className="flex items-center gap-2">
-              <Star className={`w-4 h-4 opacity-25`} />
-              <span className={`text-lg font-medium ${kidColor.text}`}>
-                {user.level}
-              </span>
+              <Star className="w-5 h-5 opacity-25" />
+              <span className="text-xl font-medium">{user.level}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* ── Body ── */}
-      <div className="max-w-lg mx-auto">
+      <div className="relative max-w-lg mx-auto">
         {/* Card deck */}
         {remaining.length > 0 && (
-          <div className="px-4 pt-16">
+          <div className="px-4 pt-8">
             <div className="relative h-[420px]">
               {backChore && (
                 <div
@@ -465,13 +446,13 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
         {/* Completed checklist */}
         {completed.length > 0 && (
           <div className="px-4 mt-8 pb-12">
-            <p className="text-sm font-medium text-olive-500 pointer-events-none">
+            <p className="text-sm font-medium text-olive-950/40 pointer-events-none">
               Completed today
             </p>
             <div className="space-y-2">
               {completed.map((chore) => (
                 <div key={chore._id} className="flex items-center gap-3 py-1">
-                  <span className="text-olive-300 line-through text-sm font-medium">
+                  <span className="text-olive-950/40 line-through text-sm font-medium">
                     {chore.title}
                   </span>
                 </div>
