@@ -10,7 +10,7 @@ import {
   useDragControls,
   animate,
 } from "framer-motion";
-import { ArrowLeft, HandCoins, Flame, Star } from "lucide-react";
+import { ArrowLeft, HandCoins, Flame, Star, Trophy } from "lucide-react";
 import { TreasureChest } from "@/components/TreasureChest";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { getPresetByFile, DEFAULT_CARD_COLOR } from "@/lib/chorePresets";
@@ -95,10 +95,17 @@ interface ChoreCardProps {
   chore: Doc<"chores">;
   color: string;
   onComplete: () => void;
-  onCycle: (direction: 1 | -1) => void;
+  onCycle?: (direction: 1 | -1) => void;
+  onSnooze?: () => void;
 }
 
-function ChoreCard({ chore, color, onComplete, onCycle }: ChoreCardProps) {
+function ChoreCard({
+  chore,
+  color,
+  onComplete,
+  onCycle,
+  onSnooze,
+}: ChoreCardProps) {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-250, 0, 250], [-18, 0, 18]);
   const dragControls = useDragControls();
@@ -115,6 +122,10 @@ function ChoreCard({ chore, color, onComplete, onCycle }: ChoreCardProps) {
   };
 
   const doCycle = (direction: 1 | -1) => {
+    if (!onCycle) {
+      animate(x, 0, { type: "spring", stiffness: 320, damping: 22 });
+      return;
+    }
     animate(x, direction * 520, { ease: [0.4, 0, 0.9, 1], duration: 0.28 });
     setTimeout(() => onCycle(direction), 210);
   };
@@ -154,13 +165,13 @@ function ChoreCard({ chore, color, onComplete, onCycle }: ChoreCardProps) {
       className="absolute inset-0 rounded-3xl border-4 border-olive-950 shadow-[5px_5px_0px_#0c0c09] overflow-hidden select-none touch-none"
       onPointerDown={handlePointerDown}
     >
-      {/* Illustration — centered, slightly smaller than card */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      {/* Illustration — fills upper portion of card, above bottom content */}
+      <div className="absolute inset-x-0 top-0 bottom-[140px] flex items-center justify-center pointer-events-none px-6 pt-14">
         {chore.imageUrl ? (
           <img
             src={chore.imageUrl}
             alt={chore.title}
-            className="w-3/4 h-3/4 object-contain"
+            className="w-full h-full object-contain"
             draggable={false}
           />
         ) : chore.icon ? (
@@ -176,20 +187,40 @@ function ChoreCard({ chore, color, onComplete, onCycle }: ChoreCardProps) {
         Double tap to complete
       </p>
 
-      {/* Title + description + timer — bottom of card */}
-      <div className="absolute bottom-0 inset-x-0 px-6 pb-6 pointer-events-none">
-        <p className="text-olive-950 text-xl font-medium leading-tight mb-2">
-          {chore.title}
-        </p>
-        <div className="flex items-center gap-2 w-full">
-          <p className="text-olive-950/50 text-sm font-semibold flex-1">
-            {chore.description ?? ""}
+      {/* Title + description + timer + buttons — bottom of card */}
+      <div className="absolute bottom-0 inset-x-0 px-4 pb-4 flex flex-col gap-3">
+        <div className="px-2 pointer-events-none">
+          <p className="text-olive-950 text-xl font-medium leading-tight mb-1">
+            {chore.title}
           </p>
-          <span
-            className={`text-sm font-semibold shrink-0 ${timeLeft.urgent ? "text-red-700/70" : "text-olive-950"}`}
+          <div className="flex items-center gap-2 w-full">
+            <p className="text-olive-950/50 text-sm font-semibold flex-1">
+              {chore.description ?? ""}
+            </p>
+            <span
+              className={`text-sm font-semibold shrink-0 ${timeLeft.urgent ? "text-red-700/70" : "text-olive-950"}`}
+            >
+              {timeLeft.label}
+            </span>
+          </div>
+        </div>
+        <div className="flex gap-3 w-full">
+          <button
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={doComplete}
+            className="flex-1 flex items-center justify-center rounded-3xl bg-white/25 py-3 text-sm font-semibold text-olive-950"
           >
-            {timeLeft.label}
-          </span>
+            Complete
+          </button>
+          {onSnooze && (
+            <button
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={onSnooze}
+              className="flex-1 flex items-center justify-center rounded-3xl bg-white/25 py-3 text-sm font-semibold text-olive-950"
+            >
+              Do later
+            </button>
+          )}
         </div>
       </div>
     </motion.div>
@@ -204,6 +235,16 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const clockLabel = useLiveClock();
 
   const today = new Date().toLocaleDateString("en-CA");
+  const snoozeKey = `snoozed-${userId}-${today}`;
+  const [snoozedIds, setSnoozedIds] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(`snoozed-${userId}-${today}`);
+      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
   const user = useQuery(api.users.get, { id: userId });
   const allUsers = useQuery(api.users.list);
   const chores = useQuery(api.chores.listForKid, {
@@ -225,8 +266,22 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const chestUnlocked = completedCount >= CHORES_REQUIRED;
   const progress = Math.min((completedCount / CHORES_REQUIRED) * 100, 100);
 
-  const remaining = chores?.filter((c) => !completedIds.has(c._id)) ?? [];
+  const remaining =
+    chores?.filter((c) => !completedIds.has(c._id) && !snoozedIds.has(c._id)) ??
+    [];
   const completed = chores?.filter((c) => completedIds.has(c._id)) ?? [];
+
+  const handleSnooze = (choreId: string) => {
+    setSnoozedIds((prev) => {
+      const next = new Set(prev);
+      next.add(choreId);
+      try {
+        localStorage.setItem(snoozeKey, JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
+    setFrontOffset(0);
+  };
 
   // Deck cycles through remaining chores; frontOffset wraps around
   const safeOffset = remaining.length > 0 ? frontOffset % remaining.length : 0;
@@ -370,7 +425,12 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                     onComplete={() =>
                       complete({ choreId: frontChore._id, userId, today })
                     }
-                    onCycle={handleCycle}
+                    onCycle={remaining.length > 1 ? handleCycle : undefined}
+                    onSnooze={
+                      frontChore.scheduleType !== "repeating"
+                        ? () => handleSnooze(frontChore._id)
+                        : undefined
+                    }
                   />
                 )}
               </AnimatePresence>
@@ -385,15 +445,18 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
               initial={{ scale: 0.85, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 400, damping: 22 }}
-              className="px-4 mt-8 flex justify-center"
+              className="px-4 mt-8"
             >
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 onClick={() => setShowChest(true)}
-                className={`${kidColor.bg} border-4 border-olive-950 shadow-[5px_5px_0px_#0c0c09] rounded-3xl px-10 py-6 font-knewave text-2xl text-olive-950`}
+                className="w-full flex items-center justify-center gap-3 bg-white border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09] rounded-3xl py-5 text-stone-950"
               >
-                {todayOpen ? "View reward 🎁" : "Open chest! 🎁"}
+                <Trophy className="w-5 h-5 shrink-0" />
+                <span className="text-xl font-medium">
+                  {todayOpen ? "View reward" : "Open reward"}
+                </span>
               </motion.button>
             </motion.div>
           )}

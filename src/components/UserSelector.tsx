@@ -73,8 +73,17 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
   const kids   = users.filter((u) => u.role === "kid");
   const admins = users.filter((u) => u.role === "admin");
 
-  const getRemainingCount = (kidId: Id<"users">) =>
-    kidSummaries?.find((s) => s.userId === kidId)?.remaining ?? null;
+  const getRemainingCount = (kidId: Id<"users">) => {
+    const serverCount = kidSummaries?.find((s) => s.userId === kidId)?.remaining;
+    if (serverCount == null) return null;
+    try {
+      const raw = localStorage.getItem(`snoozed-${kidId}-${today}`);
+      const snoozed = raw ? (JSON.parse(raw) as string[]).length : 0;
+      return Math.max(0, serverCount - snoozed);
+    } catch {
+      return serverCount;
+    }
+  };
 
   const handleSetupFamily = async () => {
     if (admins.length === 0) await createUser({ name: "Parent", role: "admin" });
