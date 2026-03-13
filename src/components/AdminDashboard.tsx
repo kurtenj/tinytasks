@@ -15,7 +15,7 @@ type Tab = "chores" | "rewards" | "progress" | "kids";
 /** Small square showing the chore illustration or Lucide icon fallback */
 function ChoreAvatar({ imageUrl, icon, color }: { imageUrl?: string; icon?: string; color: string }) {
   const LucideIcon = icon
-    ? (LucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[icon]
+    ? (LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[icon]
     : undefined;
   return (
     <div
