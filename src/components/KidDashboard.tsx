@@ -10,8 +10,9 @@ import {
   useDragControls,
   animate,
 } from "framer-motion";
-import { ArrowLeft, HandCoins, Flame, Star, Trophy } from "lucide-react";
+import { ArrowLeft, HandCoins, Flame, Star, Trophy, ShoppingBag } from "lucide-react";
 import { TreasureChest } from "@/components/TreasureChest";
+import { Store } from "@/components/Store";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { getPresetByFile, DEFAULT_CARD_COLOR } from "@/lib/chorePresets";
 import * as LucideIcons from "lucide-react";
@@ -233,6 +234,7 @@ function ChoreCard({
 
 export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const [showChest, setShowChest] = useState(false);
+  const [showStore, setShowStore] = useState(false);
   const [frontOffset, setFrontOffset] = useState(0);
   const clockLabel = useLiveClock();
 
@@ -345,17 +347,29 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
         className="relative bg-olive-950 rounded-b-3xl px-4 pt-4 pb-5"
       >
         <div className="max-w-lg mx-auto space-y-4">
-          {/* Back */}
-          <button
-            onClick={onSwitchUser}
-            className="active:scale-[0.97] transition-transform"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
+          {/* Back + Store */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={onSwitchUser}
+              className="active:scale-[0.97] transition-transform"
+            >
+              <ArrowLeft className="w-5 h-5 text-white" />
+            </button>
+            <button
+              onClick={() => setShowStore(true)}
+              className="active:scale-[0.97] transition-transform"
+            >
+              <ShoppingBag className="w-5 h-5 text-white/60" />
+            </button>
+          </div>
 
           {/* Avatar + Name */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/25 shrink-0" />
+            <div className="w-10 h-10 rounded-full bg-white/25 shrink-0 overflow-hidden flex items-center justify-center">
+              {user.avatar && (
+                <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+              )}
+            </div>
             <p className="text-[32px] leading-10 font-knewave text-white">
               {user.name}
             </p>
@@ -550,6 +564,12 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
             existingOpen={todayOpen ?? null}
             onClose={() => setShowChest(false)}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showStore && (
+          <Store userId={userId} onClose={() => setShowStore(false)} />
         )}
       </AnimatePresence>
     </div>

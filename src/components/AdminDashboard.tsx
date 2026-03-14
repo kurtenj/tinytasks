@@ -4,13 +4,14 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { motion } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { Plus, Trash2, LogOut, RotateCcw, Gift, CheckSquare, UserPlus, Pencil } from "lucide-react";
+import { Plus, Trash2, LogOut, RotateCcw, Gift, CheckSquare, UserPlus, Pencil, ShoppingBag } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { getPresetByFile, DEFAULT_CARD_COLOR } from "@/lib/chorePresets";
 import { AddChoreDialog } from "@/components/AddChoreDialog";
 import { AddRewardDialog } from "@/components/AddRewardDialog";
 
-type Tab = "chores" | "rewards" | "kids";
+type Tab = "chores" | "rewards" | "kids" | "store";
+type StoreItemType = "avatar" | "theme";
 
 /** Small square showing the chore illustration or Lucide icon fallback */
 function ChoreAvatar({ imageUrl, icon, color }: { imageUrl?: string; icon?: string; color: string }) {
@@ -51,12 +52,21 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   const [allowanceInput,   setAllowanceInput]   = useState("");
   const [editingAllowance, setEditingAllowance] = useState(false);
 
+  // Store state
+  const [showAddItem,    setShowAddItem]    = useState(false);
+  const [itemType,       setItemType]       = useState<StoreItemType>("avatar");
+  const [itemName,       setItemName]       = useState("");
+  const [itemCost,       setItemCost]       = useState("");
+  const [itemImageUrl,   setItemImageUrl]   = useState("");
+  const [itemValue,      setItemValue]      = useState("");
+
   const today           = new Date().toLocaleDateString("en-CA");
   const chores          = useQuery(api.chores.listAll);
   const rewards         = useQuery(api.rewards.listAll);
   const kids            = useQuery(api.users.getKids);
   const todayCompletions = useQuery(api.completions.getTodayAll, { today });
   const allowanceAmount  = useQuery(api.settings.getAllowanceAmount);
+  const storeItems       = useQuery(api.store.listAllItems);
   const removeChore       = useMutation(api.chores.remove);
   const removeReward      = useMutation(api.rewards.remove);
   const resetDay          = useMutation(api.completions.resetDay);
@@ -65,6 +75,23 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   const renameKid         = useMutation(api.users.rename);
   const removeKid         = useMutation(api.users.remove);
   const setAllowanceAmount = useMutation(api.settings.setAllowanceAmount);
+  const createStoreItem   = useMutation(api.store.createItem);
+  const removeStoreItem   = useMutation(api.store.removeItem);
+
+  const handleAddStoreItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cost = parseInt(itemCost, 10);
+    if (!itemName.trim() || isNaN(cost) || cost < 0) return;
+    await createStoreItem({
+      type: itemType,
+      name: itemName.trim(),
+      cost,
+      imageUrl: itemImageUrl.trim() || undefined,
+      value: itemValue.trim() || undefined,
+    });
+    setItemName(""); setItemCost(""); setItemImageUrl(""); setItemValue("");
+    setShowAddItem(false);
+  };
 
   const handleSaveAllowance = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,9 +118,10 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   };
 
   const TABS = [
-    { id: "chores",   icon: CheckSquare, label: "Chores"   },
-    { id: "rewards",  icon: Gift,        label: "Rewards"  },
-    { id: "kids",     icon: UserPlus,    label: "Kids"     },
+    { id: "chores",  icon: CheckSquare, label: "Chores"  },
+    { id: "rewards", icon: Gift,        label: "Rewards" },
+    { id: "kids",    icon: UserPlus,    label: "Kids"    },
+    { id: "store",   icon: ShoppingBag, label: "Store"   },
   ] as const;
 
   return (
@@ -382,6 +410,107 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                 <div className="text-center py-12 text-stone-400">
                   <UserPlus className="w-10 h-10 mx-auto mb-2 opacity-30" />
                   <p>No kids yet. Add one above!</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Store Tab ── */}
+        {tab === "store" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-semibold text-stone-950">Store Items ({storeItems?.length ?? 0})</h2>
+              <button
+                onClick={() => setShowAddItem((v) => !v)}
+                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2 px-3 rounded-xl hover:bg-stone-800 active:scale-[0.97] transition-all"
+              >
+                <Plus className="w-4 h-4" /> Add Item
+              </button>
+            </div>
+
+            {showAddItem && (
+              <form onSubmit={handleAddStoreItem} className="bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 mb-4 space-y-3">
+                <div className="flex gap-2">
+                  {(["avatar", "theme"] as StoreItemType[]).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setItemType(t)}
+                      className={`flex-1 py-1.5 rounded-lg text-sm font-medium border-2 transition-colors ${itemType === t ? "border-stone-950 bg-stone-950 text-white" : "border-stone-200 text-stone-400"}`}
+                    >
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  value={itemName}
+                  onChange={(e) => setItemName(e.target.value)}
+                  placeholder="Name"
+                  className="w-full border-2 border-stone-950 rounded-xl px-4 py-2 text-sm focus:outline-none"
+                />
+                <input
+                  type="number"
+                  value={itemCost}
+                  onChange={(e) => setItemCost(e.target.value)}
+                  placeholder="Cost (points)"
+                  min="0"
+                  className="w-full border-2 border-stone-950 rounded-xl px-4 py-2 text-sm focus:outline-none"
+                />
+                {itemType === "avatar" && (
+                  <input
+                    value={itemImageUrl}
+                    onChange={(e) => setItemImageUrl(e.target.value)}
+                    placeholder="Image URL (e.g. /avatars/cat.png)"
+                    className="w-full border-2 border-stone-950 rounded-xl px-4 py-2 text-sm focus:outline-none"
+                  />
+                )}
+                {itemType === "theme" && (
+                  <input
+                    value={itemValue}
+                    onChange={(e) => setItemValue(e.target.value)}
+                    placeholder="CSS color (e.g. #e879f9 or linear-gradient(...))"
+                    className="w-full border-2 border-stone-950 rounded-xl px-4 py-2 text-sm focus:outline-none"
+                  />
+                )}
+                <div className="flex gap-2">
+                  <button type="submit" className="flex-1 bg-stone-950 text-white text-sm py-2 rounded-xl hover:bg-stone-800 active:scale-[0.97] transition-all">
+                    Save
+                  </button>
+                  <button type="button" onClick={() => setShowAddItem(false)} className="text-stone-400 px-4 text-sm hover:text-stone-700">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            <div className="space-y-2">
+              {storeItems?.map((item) => (
+                <div key={item._id} className="bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 flex items-center gap-3">
+                  {/* Preview */}
+                  <div className="w-10 h-10 rounded-full shrink-0 overflow-hidden border border-stone-200 bg-stone-100 flex items-center justify-center">
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                    ) : item.value ? (
+                      <div className="w-full h-full" style={{ background: item.value }} />
+                    ) : null}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-stone-950 truncate">{item.name}</p>
+                    <p className="text-xs text-stone-400 mt-0.5 capitalize">{item.type} · {item.cost} pts</p>
+                  </div>
+                  <button
+                    onClick={() => removeStoreItem({ id: item._id })}
+                    className="text-stone-300 hover:text-red-500 p-1 transition-colors shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              {storeItems?.length === 0 && (
+                <div className="text-center py-12 text-stone-400">
+                  <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                  <p>No store items yet. Add one above!</p>
                 </div>
               )}
             </div>

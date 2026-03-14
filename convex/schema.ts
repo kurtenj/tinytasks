@@ -10,6 +10,8 @@ export default defineSchema({
     streak: v.number(),
     lastCompletedDate: v.optional(v.string()),
     level: v.number(),
+    equippedAvatar: v.optional(v.id("storeItems")),
+    equippedTheme: v.optional(v.id("storeItems")),
   }),
   chores: defineTable({
     title: v.string(),
@@ -56,4 +58,20 @@ export default defineSchema({
     key: v.string(),
     value: v.string(),
   }).index("by_key", ["key"]),
+  storeItems: defineTable({
+    type: v.union(v.literal("avatar"), v.literal("theme"), v.literal("effect")),
+    name: v.string(),
+    cost: v.number(),
+    imageUrl: v.optional(v.string()),
+    value: v.optional(v.string()), // for themes: CSS color/gradient
+    isActive: v.boolean(),
+    order: v.number(),
+  }).index("by_type", ["type"]),
+  purchases: defineTable({
+    userId: v.id("users"),
+    itemId: v.id("storeItems"),
+    purchasedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_item", ["userId", "itemId"]),
 });
