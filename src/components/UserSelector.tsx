@@ -1,40 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { PinPad } from "@/components/PinPad";
-
-
-function HandCoinsIcon({
-  stroke,
-  opacity = 1,
-}: {
-  stroke: string;
-  opacity?: number;
-}) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={stroke}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ opacity, flexShrink: 0 }}
-    >
-      <path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17" />
-      <path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9" />
-      <path d="m2 16 6 6" />
-      <circle cx="16" cy="9" r="2.9" />
-      <circle cx="6" cy="5" r="3" />
-    </svg>
-  );
-}
+import { useLiveClock, getToday } from "@/lib/time";
 
 function ParentsIcon() {
   return (
@@ -58,28 +30,6 @@ function ParentsIcon() {
   );
 }
 
-function useLiveClock() {
-  const [label, setLabel] = useState(() => formatClock());
-
-  useEffect(() => {
-    const update = () => setLabel(formatClock());
-    const id = setInterval(update, 10000);
-    return () => clearInterval(id);
-  }, []);
-
-  return label;
-}
-
-function formatClock(): string {
-  const now = new Date();
-  const day = now.toLocaleDateString("en-US", { weekday: "long" });
-  const time = now.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  return `${day}, ${time}`;
-}
-
 interface UserSelectorProps {
   users: Doc<"users">[];
   onSelectUser: (id: Id<"users">, role: "admin" | "kid") => void;
@@ -90,7 +40,7 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
   const [pendingAdmin, setPendingAdmin] = useState<Doc<"users"> | null>(null);
   const clockLabel = useLiveClock();
 
-  const today = new Date().toLocaleDateString("en-CA");
+  const today = getToday();
   const todayDow = new Date().getDay();
   const kidSummaries = useQuery(api.chores.getKidsSummary, { today, todayDow });
 
@@ -183,20 +133,11 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
                     {kid.name}
                   </span>
                 </div>
-                {/* Stats */}
-                <div className="flex flex-col gap-2 mt-3">
-                  <div className="flex items-center gap-2">
-                    <HandCoinsIcon stroke="#0c0c09" opacity={0.25} />
-                    <span className="text-stone-950 text-xl font-medium">
-                      {kid.points}
-                    </span>
-                  </div>
-                  {remaining !== null && (
-                    <span className="text-stone-950 text-sm font-semibold">
-                      {remaining} {remaining === 1 ? "chore" : "chores"} left
-                    </span>
-                  )}
-                </div>
+                {remaining !== null && (
+                  <span className="text-stone-950 text-sm font-semibold mt-3 block">
+                    {remaining} {remaining === 1 ? "chore" : "chores"} left
+                  </span>
+                )}
               </motion.button>
             );
           })}

@@ -13,6 +13,19 @@ export const list = query({
 
 const isWeekend = (dow: number) => dow === 0 || dow === 6;
 
+type ChoreDoc = { assignedTo?: string[]; scheduleType?: string; daysOfWeek?: number[] };
+function isChoreForKid(chore: ChoreDoc, userId: string, dow: number): boolean {
+  if (chore.assignedTo && chore.assignedTo.length > 0) {
+    if (!chore.assignedTo.includes(userId)) return false;
+  }
+  const type = chore.scheduleType ?? "floating";
+  if (type === "repeating") {
+    if (!chore.daysOfWeek || chore.daysOfWeek.length === 0) return true;
+    return chore.daysOfWeek.includes(dow);
+  }
+  return true;
+}
+
 export const listForKid = query({
   args: { userId: v.id("users"), todayDow: v.number() },
   handler: async (ctx, { userId, todayDow }) => {
@@ -21,17 +34,7 @@ export const listForKid = query({
       .query("chores")
       .filter((q) => q.eq(q.field("isActive"), true))
       .collect();
-    return allActive.filter((chore) => {
-      if (chore.assignedTo && chore.assignedTo.length > 0) {
-        if (!chore.assignedTo.includes(userId)) return false;
-      }
-      const type = chore.scheduleType ?? "floating";
-      if (type === "repeating") {
-        if (!chore.daysOfWeek || chore.daysOfWeek.length === 0) return true;
-        return chore.daysOfWeek.includes(todayDow);
-      }
-      return true;
-    });
+    return allActive.filter((chore) => isChoreForKid(chore, userId, todayDow));
   },
 });
 
@@ -110,17 +113,7 @@ export const getKidsSummary = query({
     }
 
     return kids.map((kid) => {
-      const kidChores = allActive.filter((chore) => {
-        if (chore.assignedTo && chore.assignedTo.length > 0) {
-          if (!chore.assignedTo.includes(kid._id)) return false;
-        }
-        const type = chore.scheduleType ?? "floating";
-        if (type === "repeating") {
-          if (!chore.daysOfWeek || chore.daysOfWeek.length === 0) return true;
-          return chore.daysOfWeek.includes(todayDow);
-        }
-        return true;
-      });
+      const kidChores = allActive.filter((chore) => isChoreForKid(chore, kid._id, todayDow));
       const completedIds = new Set(
         todayCompletions.filter((c) => c.userId === kid._id).map((c) => c.choreId)
       );
@@ -139,7 +132,6 @@ export const getWeeklyAllowanceStatus = query({
     weekDates: v.array(v.string()),
   },
   handler: async (ctx, { userId, today, todayDow, weekDates }) => {
-    const isWeekend = todayDow === 0 || todayDow === 6;
     const weekDow = [1, 2, 3, 4, 5]; // Mon=1 … Fri=5
 
     const allActive = await ctx.db
@@ -180,7 +172,7 @@ export const getWeeklyAllowanceStatus = query({
       const date = weekDates[i];
       const dow = weekDow[i];
       // Only evaluate days that have already passed
-      if (!isWeekend && date >= today) continue;
+      if (!isWeekend(todayDow) && date >= today) continue;
       for (const chore of scheduledChores) {
         const days = chore.daysOfWeek;
         if (!days || days.length === 0 || days.includes(dow)) {
@@ -196,10 +188,10 @@ export const getWeeklyAllowanceStatus = query({
     for (const chore of floatingChores) {
       const done = weekCompletions.some((c) => c.choreId === chore._id);
       if (!done) {
-        return isWeekend ? "lost" : "on_track";
+        return isWeekend(todayDow) ? "lost" : "on_track";
       }
     }
 
-    return isWeekend ? "earned" : "on_track";
+    return isWeekend(todayDow) ? "earned" : "on_track";
   },
 });

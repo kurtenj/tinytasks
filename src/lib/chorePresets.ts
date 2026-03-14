@@ -28,3 +28,9 @@ export function getPresetByFile(imageUrl: string | undefined): ChorePreset | und
   if (!imageUrl) return undefined;
   return CHORE_PRESETS.find((p) => p.file === imageUrl);
 }
+
+export const DAY_ABBREVS = ["Su", "M", "T", "W", "Th", "F", "Sa"];
+
+export function choreColor(chore: { cardColor?: string; imageUrl?: string }): string {
+  return chore.cardColor ?? getPresetByFile(chore.imageUrl)?.color ?? DEFAULT_CARD_COLOR;
+}

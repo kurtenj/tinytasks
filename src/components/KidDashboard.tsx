@@ -10,21 +10,11 @@ import {
   useDragControls,
   animate,
 } from "framer-motion";
-import { ArrowLeft, HandCoins, Flame, Star, Trophy, ShoppingBag } from "lucide-react";
-import { TreasureChest } from "@/components/TreasureChest";
-import { Store } from "@/components/Store";
+import { ArrowLeft } from "lucide-react";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { getPresetByFile, DEFAULT_CARD_COLOR } from "@/lib/chorePresets";
+import { choreColor } from "@/lib/chorePresets";
 import * as LucideIcons from "lucide-react";
-
-
-function choreColor(chore: Doc<"chores">): string {
-  return (
-    chore.cardColor ??
-    getPresetByFile(chore.imageUrl)?.color ??
-    DEFAULT_CARD_COLOR
-  );
-}
+import { useLiveClock, getToday } from "@/lib/time";
 
 function ChoreIcon({
   iconName,
@@ -65,25 +55,6 @@ function getTimeLeft(skippable: boolean): { label: string; urgent: boolean } {
     return { label: `${h} ${h === 1 ? "hour" : "hours"} left`, urgent: h < 2 };
   if (m >= 1) return { label: `${m} min left`, urgent: true };
   return { label: "Due soon", urgent: true };
-}
-
-function useLiveClock() {
-  const [label, setLabel] = useState(() => formatClock());
-  useEffect(() => {
-    const id = setInterval(() => setLabel(formatClock()), 10000);
-    return () => clearInterval(id);
-  }, []);
-  return label;
-}
-
-function formatClock(): string {
-  const now = new Date();
-  const day = now.toLocaleDateString("en-US", { weekday: "long" });
-  const time = now.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  return `${day}, ${time}`;
 }
 
 interface KidDashboardProps {
@@ -233,12 +204,10 @@ function ChoreCard({
 // ── KidDashboard ──────────────────────────────────────────────────────────────
 
 export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
-  const [showChest, setShowChest] = useState(false);
-  const [showStore, setShowStore] = useState(false);
   const [frontOffset, setFrontOffset] = useState(0);
   const clockLabel = useLiveClock();
 
-  const today = new Date().toLocaleDateString("en-CA");
+  const today = getToday();
   const snoozeKey = `snoozed-${userId}-${today}`;
   const [snoozedIds, setSnoozedIds] = useState<Set<string>>(() => {
     try {
@@ -269,10 +238,6 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     userId,
     today,
   });
-  const todayOpen = useQuery(api.treasureOpens.getTodayForUser, {
-    userId,
-    today,
-  });
   const complete = useMutation(api.completions.complete);
   const allowanceStatus = useQuery(api.chores.getWeeklyAllowanceStatus, {
     userId,
@@ -283,7 +248,6 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const allowanceAmount = useQuery(api.settings.getAllowanceAmount);
 
   const completedIds = new Set(completions?.map((c) => c.choreId) ?? []);
-  const completedCount = completedIds.size;
 
   const remaining =
     chores?.filter((c) => !completedIds.has(c._id) && !snoozedIds.has(c._id)) ??
@@ -291,8 +255,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const completed = chores?.filter((c) => completedIds.has(c._id)) ?? [];
 
   const totalVisible = completed.length + remaining.length;
-  const progress = totalVisible > 0 ? Math.min((completedCount / totalVisible) * 100, 100) : 0;
-  const chestUnlocked = remaining.length === 0 && completed.length > 0;
+  const progress = totalVisible > 0 ? Math.min((completedIds.size / totalVisible) * 100, 100) : 0;
 
   const handleSnooze = (choreId: string) => {
     setSnoozedIds((prev) => {
@@ -327,7 +290,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   if (!user || !chores) {
     return (
       <div className="min-h-screen bg-olive-300 flex items-center justify-center">
-        <div className="text-olive-400 animate-pulse text-4xl">⭐</div>
+        <div className="text-olive-400 animate-pulse text-4xl">✓</div>
       </div>
     );
   }
@@ -347,21 +310,13 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
         className="relative bg-olive-950 rounded-b-3xl px-4 pt-4 pb-5"
       >
         <div className="max-w-lg mx-auto space-y-4">
-          {/* Back + Store */}
-          <div className="flex items-center justify-between">
-            <button
-              onClick={onSwitchUser}
-              className="active:scale-[0.97] transition-transform"
-            >
-              <ArrowLeft className="w-5 h-5 text-white" />
-            </button>
-            <button
-              onClick={() => setShowStore(true)}
-              className="active:scale-[0.97] transition-transform"
-            >
-              <ShoppingBag className="w-5 h-5 text-white/60" />
-            </button>
-          </div>
+          {/* Back */}
+          <button
+            onClick={onSwitchUser}
+            className="active:scale-[0.97] transition-transform"
+          >
+            <ArrowLeft className="w-5 h-5 text-white" />
+          </button>
 
           {/* Avatar + Name */}
           <div className="flex items-center gap-3">
@@ -403,22 +358,6 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                   </>
                 )}
               </motion.div>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="flex items-center gap-6 text-white">
-            <div className="flex items-center gap-2">
-              <HandCoins className="w-5 h-5 opacity-25" />
-              <span className="text-xl font-medium">{user.points}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Flame className="w-5 h-5 opacity-25" />
-              <span className="text-xl font-medium">{user.streak} days</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Star className="w-5 h-5 opacity-25" />
-              <span className="text-xl font-medium">{user.level}</span>
             </div>
           </div>
 
@@ -515,7 +454,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
 
         {/* Completed checklist — pushed to bottom */}
         {completed.length > 0 && (
-          <div className="mt-auto px-4 pt-6 pb-24">
+          <div className="mt-auto px-4 pt-6 pb-8">
             <p className="text-sm font-medium text-olive-950/40 mb-1 pointer-events-none">
               Completed today
             </p>
@@ -531,47 +470,6 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
           </div>
         )}
       </div>
-
-      {/* Chest button — fixed to bottom */}
-      <AnimatePresence>
-        {chestUnlocked && (
-          <motion.div
-            initial={{ y: 24, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 400, damping: 28 }}
-            className="fixed bottom-0 inset-x-0 p-4"
-          >
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              onClick={() => setShowChest(true)}
-              className="w-full flex items-center justify-center gap-3 bg-white border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09] rounded-3xl py-4 text-stone-950"
-            >
-              <Trophy className="w-5 h-5 shrink-0" />
-              <span className="text-xl font-medium">
-                {todayOpen ? "View reward" : "Open reward"}
-              </span>
-            </motion.button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showChest && (
-          <TreasureChest
-            userId={userId}
-            today={today}
-            existingOpen={todayOpen ?? null}
-            onClose={() => setShowChest(false)}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showStore && (
-          <Store userId={userId} onClose={() => setShowStore(false)} />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

@@ -74,8 +74,6 @@ export const resetDay = mutation({
       .query("completions")
       .withIndex("by_date", (q) => q.eq("date", today))
       .collect();
-    for (const c of todayCompletions) {
-      await ctx.db.delete(c._id);
-    }
+    await Promise.all(todayCompletions.map((c) => ctx.db.delete(c._id)));
   },
 });

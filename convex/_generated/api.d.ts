@@ -10,10 +10,7 @@
 
 import type * as chores from "../chores.js";
 import type * as completions from "../completions.js";
-import type * as rewards from "../rewards.js";
 import type * as settings from "../settings.js";
-import type * as store from "../store.js";
-import type * as treasureOpens from "../treasureOpens.js";
 import type * as users from "../users.js";
 
 import type {
@@ -25,10 +22,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   chores: typeof chores;
   completions: typeof completions;
-  rewards: typeof rewards;
   settings: typeof settings;
-  store: typeof store;
-  treasureOpens: typeof treasureOpens;
   users: typeof users;
 }>;
 

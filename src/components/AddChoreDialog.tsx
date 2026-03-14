@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { motion } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { getPresetByFile } from "@/lib/chorePresets";
+import { getPresetByFile, DAY_ABBREVS } from "@/lib/chorePresets";
 
 function fileToLabel(filename: string): string {
   return filename
@@ -13,8 +13,6 @@ function fileToLabel(filename: string): string {
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 }
-
-const DAY_ABBREVS = ["Su", "M", "T", "W", "Th", "F", "Sa"];
 
 interface AddChoreDialogProps {
   userId: Id<"users">;
