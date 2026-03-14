@@ -129,3 +129,77 @@ export const getKidsSummary = query({
     });
   },
 });
+
+// weekDates: [Mon, Tue, Wed, Thu, Fri] as YYYY-MM-DD strings for the current week
+export const getWeeklyAllowanceStatus = query({
+  args: {
+    userId: v.id("users"),
+    today: v.string(),
+    todayDow: v.number(),
+    weekDates: v.array(v.string()),
+  },
+  handler: async (ctx, { userId, today, todayDow, weekDates }) => {
+    const isWeekend = todayDow === 0 || todayDow === 6;
+    const weekDow = [1, 2, 3, 4, 5]; // Mon=1 … Fri=5
+
+    const allActive = await ctx.db
+      .query("chores")
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .collect();
+
+    const kidChores = allActive.filter((chore) => {
+      if (chore.assignedTo && chore.assignedTo.length > 0) {
+        if (!chore.assignedTo.includes(userId)) return false;
+      }
+      return true;
+    });
+
+    const floatingChores = kidChores.filter(
+      (c) => (c.scheduleType ?? "floating") === "floating",
+    );
+    const scheduledChores = kidChores.filter(
+      (c) => c.scheduleType === "repeating",
+    );
+
+    // Gather all completions for this user during Mon–Fri
+    const weekCompletions = (
+      await Promise.all(
+        weekDates.map((date) =>
+          ctx.db
+            .query("completions")
+            .withIndex("by_user_date", (q) =>
+              q.eq("userId", userId).eq("date", date),
+            )
+            .collect(),
+        ),
+      )
+    ).flat();
+
+    // Check scheduled chores for each past weekday
+    for (let i = 0; i < weekDates.length; i++) {
+      const date = weekDates[i];
+      const dow = weekDow[i];
+      // Only evaluate days that have already passed
+      if (!isWeekend && date >= today) continue;
+      for (const chore of scheduledChores) {
+        const days = chore.daysOfWeek;
+        if (!days || days.length === 0 || days.includes(dow)) {
+          const done = weekCompletions.some(
+            (c) => c.choreId === chore._id && c.date === date,
+          );
+          if (!done) return "lost";
+        }
+      }
+    }
+
+    // Check floating chores — each must be completed at least once this week
+    for (const chore of floatingChores) {
+      const done = weekCompletions.some((c) => c.choreId === chore._id);
+      if (!done) {
+        return isWeekend ? "lost" : "on_track";
+      }
+    }
+
+    return isWeekend ? "earned" : "on_track";
+  },
+});

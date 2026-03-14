@@ -47,20 +47,32 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   // Kids state
   const [newKidName,     setNewKidName]     = useState("");
   const [renamingKidId,  setRenamingKidId]  = useState<Id<"users"> | null>(null);
-  const [renameValue,    setRenameValue]    = useState("");
+  const [renameValue,      setRenameValue]      = useState("");
+  const [allowanceInput,   setAllowanceInput]   = useState("");
+  const [editingAllowance, setEditingAllowance] = useState(false);
 
   const today           = new Date().toLocaleDateString("en-CA");
   const chores          = useQuery(api.chores.listAll);
   const rewards         = useQuery(api.rewards.listAll);
   const kids            = useQuery(api.users.getKids);
   const todayCompletions = useQuery(api.completions.getTodayAll, { today });
-  const removeChore  = useMutation(api.chores.remove);
-  const removeReward = useMutation(api.rewards.remove);
-  const resetDay     = useMutation(api.completions.resetDay);
-  const updateChore  = useMutation(api.chores.update);
-  const createUser   = useMutation(api.users.create);
-  const renameKid    = useMutation(api.users.rename);
-  const removeKid    = useMutation(api.users.remove);
+  const allowanceAmount  = useQuery(api.settings.getAllowanceAmount);
+  const removeChore       = useMutation(api.chores.remove);
+  const removeReward      = useMutation(api.rewards.remove);
+  const resetDay          = useMutation(api.completions.resetDay);
+  const updateChore       = useMutation(api.chores.update);
+  const createUser        = useMutation(api.users.create);
+  const renameKid         = useMutation(api.users.rename);
+  const removeKid         = useMutation(api.users.remove);
+  const setAllowanceAmount = useMutation(api.settings.setAllowanceAmount);
+
+  const handleSaveAllowance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const val = parseFloat(allowanceInput);
+    if (isNaN(val) || val < 0) return;
+    await setAllowanceAmount({ amount: val.toFixed(2) });
+    setEditingAllowance(false);
+  };
 
   const completedChoreIds = new Set(todayCompletions?.map((c) => c.choreId) ?? []);
 
@@ -269,6 +281,42 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
         {tab === "kids" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <h2 className="font-semibold text-stone-950 mb-4">Kids ({kids?.length ?? 0})</h2>
+
+            {/* Allowance setting */}
+            <div className="bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 mb-4 flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-stone-950 text-sm">Weekly Allowance</p>
+                <p className="text-xs text-stone-400 mt-0.5">Paid on weekends when all chores are done</p>
+              </div>
+              {editingAllowance ? (
+                <form onSubmit={handleSaveAllowance} className="flex gap-2 shrink-0">
+                  <span className="self-center text-stone-500 text-sm">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={allowanceInput}
+                    onChange={(e) => setAllowanceInput(e.target.value)}
+                    className="w-20 border-2 border-stone-950 rounded-lg px-2 py-1 text-sm focus:outline-none"
+                    autoFocus
+                  />
+                  <button type="submit" className="text-xs bg-stone-950 text-white px-2.5 py-1 rounded-lg hover:bg-stone-800 active:scale-[0.97] transition-all">
+                    Save
+                  </button>
+                  <button type="button" onClick={() => setEditingAllowance(false)} className="text-xs text-stone-400 px-1 hover:text-stone-700">
+                    ✕
+                  </button>
+                </form>
+              ) : (
+                <button
+                  onClick={() => { setAllowanceInput(allowanceAmount ?? ""); setEditingAllowance(true); }}
+                  className="shrink-0 flex items-center gap-2 text-sm font-semibold text-stone-950 hover:text-stone-600 transition-colors"
+                >
+                  <span>{allowanceAmount ? `$${allowanceAmount}` : "Not set"}</span>
+                  <Pencil className="w-3.5 h-3.5 opacity-40" />
+                </button>
+              )}
+            </div>
 
             {/* Add kid form */}
             <form onSubmit={handleAddKid} className="flex gap-2 mb-4">

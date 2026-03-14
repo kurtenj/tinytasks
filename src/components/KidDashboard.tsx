@@ -42,14 +42,24 @@ function ChoreIcon({
   return <Icon className={className} />;
 }
 
-function getTimeLeft(): { label: string; urgent: boolean } {
+function getTimeLeft(skippable: boolean): { label: string; urgent: boolean } {
   const now = new Date();
   const end = new Date();
+  if (skippable) {
+    // Count down to end of Friday for the current week
+    const dow = now.getDay(); // 0=Sun, 5=Fri, 6=Sat
+    const daysUntilFriday = dow <= 5 ? 5 - dow : 0; // if Sat, treat as 0
+    end.setDate(end.getDate() + daysUntilFriday);
+  }
   end.setHours(23, 59, 59, 0);
   const ms = end.getTime() - now.getTime();
   if (ms <= 0) return { label: "Missed", urgent: true };
   const h = Math.floor(ms / 3_600_000);
   const m = Math.floor((ms % 3_600_000) / 60_000);
+  if (skippable && h >= 24) {
+    const d = Math.floor(h / 24);
+    return { label: `${d} ${d === 1 ? "day" : "days"} left`, urgent: d < 2 };
+  }
   if (h >= 1)
     return { label: `${h} ${h === 1 ? "hour" : "hours"} left`, urgent: h < 2 };
   if (m >= 1) return { label: `${m} min left`, urgent: true };
@@ -101,11 +111,12 @@ function ChoreCard({
   const rotate = useTransform(x, [-250, 0, 250], [-18, 0, 18]);
   const dragControls = useDragControls();
   const lastPointerDownRef = useRef<number>(0);
-  const [timeLeft, setTimeLeft] = useState(getTimeLeft);
+  const skippable = chore.scheduleType !== "repeating";
+  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(skippable));
   useEffect(() => {
-    const id = setInterval(() => setTimeLeft(getTimeLeft()), 60_000);
+    const id = setInterval(() => setTimeLeft(getTimeLeft(skippable)), 60_000);
     return () => clearInterval(id);
-  }, []);
+  }, [skippable]);
 
   const doComplete = () => {
     animate(x, -520, { ease: [0.4, 0, 0.9, 1], duration: 0.28 });
@@ -239,6 +250,17 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const todayDow = new Date().getDay();
   const isWeekend = todayDow === 0 || todayDow === 6;
 
+  const weekDates = (() => {
+    const now = new Date();
+    const dow = now.getDay();
+    const mondayOffset = dow === 0 ? -6 : 1 - dow;
+    return [0, 1, 2, 3, 4].map((i) => {
+      const d = new Date(now);
+      d.setDate(now.getDate() + mondayOffset + i);
+      return d.toLocaleDateString("en-CA");
+    });
+  })();
+
   const user = useQuery(api.users.get, { id: userId });
   const chores = useQuery(api.chores.listForKid, { userId, todayDow });
   const completions = useQuery(api.completions.getTodayForUser, {
@@ -250,6 +272,13 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     today,
   });
   const complete = useMutation(api.completions.complete);
+  const allowanceStatus = useQuery(api.chores.getWeeklyAllowanceStatus, {
+    userId,
+    today,
+    todayDow,
+    weekDates,
+  });
+  const allowanceAmount = useQuery(api.settings.getAllowanceAmount);
 
   const completedIds = new Set(completions?.map((c) => c.choreId) ?? []);
   const completedCount = completedIds.size;
@@ -378,6 +407,36 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
               <span className="text-xl font-medium">{user.level}</span>
             </div>
           </div>
+
+          {/* Allowance status */}
+          {allowanceAmount && allowanceStatus && (
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-2 h-2 rounded-full shrink-0 ${
+                  allowanceStatus === "earned"
+                    ? "bg-green-400"
+                    : allowanceStatus === "lost"
+                      ? "bg-red-400"
+                      : "bg-white/30"
+                }`}
+              />
+              <span
+                className={`text-sm font-semibold ${
+                  allowanceStatus === "earned"
+                    ? "text-green-400"
+                    : allowanceStatus === "lost"
+                      ? "text-red-400"
+                      : "text-white/50"
+                }`}
+              >
+                {allowanceStatus === "earned"
+                  ? `$${allowanceAmount} allowance earned!`
+                  : allowanceStatus === "lost"
+                    ? "No allowance this week"
+                    : `$${allowanceAmount} allowance on track`}
+              </span>
+            </div>
+          )}
         </div>
       </motion.div>
 

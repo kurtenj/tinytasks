@@ -26,3 +26,29 @@ export const setPin = mutation({
     }
   },
 });
+
+export const getAllowanceAmount = query({
+  args: {},
+  handler: async (ctx) => {
+    const setting = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", "allowanceAmount"))
+      .first();
+    return setting?.value ?? null;
+  },
+});
+
+export const setAllowanceAmount = mutation({
+  args: { amount: v.string() },
+  handler: async (ctx, { amount }) => {
+    const existing = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", "allowanceAmount"))
+      .first();
+    if (existing) {
+      await ctx.db.patch(existing._id, { value: amount });
+    } else {
+      await ctx.db.insert("settings", { key: "allowanceAmount", value: amount });
+    }
+  },
+});
