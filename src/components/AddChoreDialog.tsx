@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import Image from "next/image";
+import NextImage from "next/image";
 import { motion } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { getPresetByFile, DAY_ABBREVS } from "@/lib/chorePresets";
@@ -140,7 +140,7 @@ export function AddChoreDialog({ userId, onClose, chore }: AddChoreDialogProps) 
                     style={{ backgroundColor: preset?.color ?? "#e7e5e4" }}
                     title={preset?.label ?? fileToLabel(filename)}
                   >
-                    <Image
+                    <NextImage
                       src={path}
                       alt={fileToLabel(filename)}
                       fill
