@@ -32,7 +32,6 @@ function ChoreIcon({
   return <Icon className={className} />;
 }
 
-
 interface KidDashboardProps {
   userId: Id<"users">;
   onSwitchUser: () => void;
@@ -261,7 +260,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
         initial={{ y: -24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 28 }}
-        className="relative bg-olive-300 rounded-b-3xl px-4 pt-4 pb-5"
+        className="relative bg-olive-200 rounded-b-4xl px-4 pt-4 pb-5"
       >
         <div className="max-w-lg mx-auto space-y-4">
           {/* Back */}

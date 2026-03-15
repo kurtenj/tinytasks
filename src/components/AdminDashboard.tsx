@@ -65,6 +65,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   const createUser        = useMutation(api.users.create);
   const renameKid         = useMutation(api.users.rename);
   const removeKid         = useMutation(api.users.remove);
+  const setAvatar         = useMutation(api.users.setAvatar);
   const setAllowanceAmount = useMutation(api.settings.setAllowanceAmount);
 
   const handleSaveAllowance = async (e: React.FormEvent) => {
@@ -280,45 +281,60 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
 
             <div className="space-y-2">
               {kids?.map((kid) => (
-                <div key={kid._id} className="bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center shrink-0 overflow-hidden">
-                    {kid.avatar
-                      ? <img src={kid.avatar} alt="" className="w-full h-full object-cover" />
-                      : <UserPlus className="w-4 h-4 text-stone-400" />}
+                <div key={kid._id} className="bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center shrink-0 overflow-hidden">
+                      {kid.avatar
+                        ? <img src={kid.avatar} alt="" className="w-full h-full object-cover" />
+                        : <UserPlus className="w-4 h-4 text-stone-400" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {renamingKidId === kid._id ? (
+                        <form onSubmit={handleRenameKid} className="flex gap-2">
+                          <input
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            className="flex-1 border-2 border-stone-950 rounded-lg px-2 py-1 text-sm focus:outline-none min-w-0"
+                            autoFocus
+                          />
+                          <button type="submit" className="text-xs bg-stone-950 text-white px-2.5 py-1 rounded-lg hover:bg-stone-800 active:scale-[0.97] transition-all">
+                            Save
+                          </button>
+                          <button type="button" onClick={() => setRenamingKidId(null)} className="text-xs text-stone-400 px-1 hover:text-stone-700">
+                            ✕
+                          </button>
+                        </form>
+                      ) : (
+                        <p className="font-medium text-stone-950">{kid.name}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => { setRenamingKidId(kid._id); setRenameValue(kid.name); }}
+                        className="text-stone-300 hover:text-stone-700 p-1 transition-colors"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => removeKid({ id: kid._id })}
+                        className="text-stone-300 hover:text-red-500 p-1 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    {renamingKidId === kid._id ? (
-                      <form onSubmit={handleRenameKid} className="flex gap-2">
-                        <input
-                          value={renameValue}
-                          onChange={(e) => setRenameValue(e.target.value)}
-                          className="flex-1 border-2 border-stone-950 rounded-lg px-2 py-1 text-sm focus:outline-none min-w-0"
-                          autoFocus
-                        />
-                        <button type="submit" className="text-xs bg-stone-950 text-white px-2.5 py-1 rounded-lg hover:bg-stone-800 active:scale-[0.97] transition-all">
-                          Save
-                        </button>
-                        <button type="button" onClick={() => setRenamingKidId(null)} className="text-xs text-stone-400 px-1 hover:text-stone-700">
-                          ✕
-                        </button>
-                      </form>
-                    ) : (
-                      <p className="font-medium text-stone-950">{kid.name}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => { setRenamingKidId(kid._id); setRenameValue(kid.name); }}
-                      className="text-stone-300 hover:text-stone-700 p-1 transition-colors"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => removeKid({ id: kid._id })}
-                      className="text-stone-300 hover:text-red-500 p-1 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  {/* Avatar picker */}
+                  <div className="flex items-center gap-2 pl-1">
+                    <span className="text-xs text-stone-400 shrink-0">Avatar:</span>
+                    {["/avatars/em.png", "/avatars/judah.png", "/avatars/julian.png"].map((src) => (
+                      <button
+                        key={src}
+                        onClick={() => setAvatar({ id: kid._id, avatar: kid.avatar === src ? undefined : src })}
+                        className={`w-8 h-8 rounded-full overflow-hidden border-2 transition-all active:scale-95 ${kid.avatar === src ? "border-stone-950" : "border-transparent opacity-50 hover:opacity-80"}`}
+                      >
+                        <img src={src} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
                   </div>
                 </div>
               ))}

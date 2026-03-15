@@ -7,16 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { PinPad } from "@/components/PinPad";
 import { useLiveClock, getToday } from "@/lib/time";
-import { UserLock } from "lucide-react";
 
-const KID_COLORS = [
-  "#f5f5f5",
-  "#e5e5e5",
-  "#d4d4d4",
-  "#f5f5f5",
-  "#e5e5e5",
-  "#d4d4d4",
-];
+const KID_COLORS = ["oklch(93% 0.007 106.5)"];
 
 interface UserSelectorProps {
   users: Doc<"users">[];
@@ -114,15 +106,23 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
                 className="rounded-full flex flex-col justify-between overflow-clip p-4 w-full text-left"
                 style={{ backgroundColor: KID_COLORS[i % KID_COLORS.length] }}
               >
-                {/* Name row with avatar dot */}
+                {/* Name row with avatar */}
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-black/25 shrink-0" />
+                  <div className="w-8 h-8 rounded-full bg-black/25 shrink-0 overflow-hidden flex items-center justify-center">
+                    {kid.avatar && (
+                      <img
+                        src={kid.avatar}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
                   <span className="text-stone-950 text-xl font-medium leading-6">
                     {kid.name}
                   </span>
                 </div>
                 {remaining !== null && (
-                  <span className="text-stone-950/60 text-sm font-regular mt-3 block">
+                  <span className="text-stone-950/60 text-sm font-medium mt-3 block">
                     {remaining} {remaining === 1 ? "chore" : "chores"} left
                   </span>
                 )}
@@ -145,10 +145,9 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
           }}
           whileTap={{ scale: 0.97 }}
           onClick={() => setPendingAdmin(admins[0])}
-          className="flex items-center justify-center gap-2 bg-stone-100 rounded-full py-4 w-full shrink-0 hover:bg-stone-200 transition-colors"
+          className="flex items-center justify-center gap-2 border border-neutral-300 rounded-full py-4 w-full shrink-0 hover:bg-neutral-100 transition-colors text-neutral-800 font-medium mt-2"
         >
-          <UserLock className="w-5 h-5 opacity-50 shrink-0" />
-          <span className="text-stone-500 text-lg">Admin</span>
+          <span className="text-md">Admin</span>
         </motion.button>
       )}
 

@@ -43,6 +43,13 @@ export const rename = mutation({
   },
 });
 
+export const setAvatar = mutation({
+  args: { id: v.id("users"), avatar: v.optional(v.string()) },
+  handler: async (ctx, { id, avatar }) => {
+    await ctx.db.patch(id, { avatar });
+  },
+});
+
 export const remove = mutation({
   args: { id: v.id("users") },
   handler: async (ctx, { id }) => {
