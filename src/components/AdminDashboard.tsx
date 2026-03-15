@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { Plus, Trash2, LogOut, RotateCcw, CheckSquare, UserPlus, Pencil } from "lucide-react";
@@ -23,7 +24,7 @@ function ChoreAvatar({ imageUrl, icon, color }: { imageUrl?: string; icon?: stri
       style={{ backgroundColor: color }}
     >
       {imageUrl ? (
-        <img src={imageUrl} alt="" className="w-full h-full object-contain" />
+        <Image src={imageUrl} alt="" width={40} height={40} className="w-full h-full object-contain" />
       ) : LucideIcon ? (
         <LucideIcon className="w-5 h-5 text-stone-950/60" />
       ) : null}
@@ -285,7 +286,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center shrink-0 overflow-hidden">
                       {kid.avatar
-                        ? <img src={kid.avatar} alt="" className="w-full h-full object-cover" />
+                        ? <Image src={kid.avatar} alt="" width={36} height={36} className="w-full h-full object-cover" />
                         : <UserPlus className="w-4 h-4 text-stone-400" />}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -332,7 +333,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                         onClick={() => setAvatar({ id: kid._id, avatar: kid.avatar === src ? undefined : src })}
                         className={`w-8 h-8 rounded-full overflow-hidden border-2 transition-all active:scale-95 ${kid.avatar === src ? "border-stone-950" : "border-transparent opacity-50 hover:opacity-80"}`}
                       >
-                        <img src={src} alt="" className="w-full h-full object-cover" />
+                        <Image src={src} alt="" width={32} height={32} className="w-full h-full object-cover" />
                       </button>
                     ))}
                   </div>

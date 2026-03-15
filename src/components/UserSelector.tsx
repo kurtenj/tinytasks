@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
+import Image from "next/image";
 import { PinPad } from "@/components/PinPad";
 import { useLiveClock, getToday } from "@/lib/time";
 
@@ -57,7 +58,7 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
         <motion.h1
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="font-google-sans text-[56px] leading-[68px] text-center text-stone-950 shrink-0"
+          className="font-google-sans text-[56px] leading-17 text-center text-stone-950 shrink-0"
         >
           Tiny{"\n"}Tasks
         </motion.h1>
@@ -110,9 +111,11 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-black/25 shrink-0 overflow-hidden flex items-center justify-center">
                     {kid.avatar && (
-                      <img
+                      <Image
                         src={kid.avatar}
                         alt=""
+                        width={32}
+                        height={32}
                         className="w-full h-full object-cover"
                       />
                     )}

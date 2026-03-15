@@ -10,6 +10,7 @@ import {
   useDragControls,
   animate,
 } from "framer-motion";
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import * as LucideIcons from "lucide-react";
@@ -102,14 +103,17 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
       onPointerDown={handlePointerDown}
     >
       {/* Illustration — fills upper portion of card, above bottom content */}
-      <div className="absolute inset-x-0 top-0 bottom-[140px] flex items-center justify-center pointer-events-none px-6 pt-14">
+      <div className="absolute inset-x-0 top-0 bottom-35 pointer-events-none px-6 pt-14">
         {chore.imageUrl ? (
-          <img
-            src={chore.imageUrl}
-            alt={chore.title}
-            className="w-full h-full object-contain"
-            draggable={false}
-          />
+          <div className="relative w-full h-full">
+            <Image
+              src={chore.imageUrl}
+              alt={chore.title}
+              fill
+              className="object-contain"
+              sizes="(max-width: 512px) 100vw, 512px"
+            />
+          </div>
         ) : chore.icon ? (
           <ChoreIcon
             iconName={chore.icon}
@@ -132,7 +136,7 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
           <button
             onPointerDown={(e) => e.stopPropagation()}
             onClick={doComplete}
-            className="flex-1 flex items-center justify-center rounded-full border-1 border-neutral-300 py-3 text-sm font-medium text-neutral-800"
+            className="flex-1 flex items-center justify-center rounded-full border border-neutral-300 py-3 text-sm font-medium text-neutral-800"
           >
             Complete
           </button>
@@ -140,7 +144,7 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
             <button
               onPointerDown={(e) => e.stopPropagation()}
               onClick={onSnooze}
-              className="flex-1 flex items-center justify-center rounded-full border-1 border-neutral-300 py-3 text-sm font-medium text-neutral-800"
+              className="flex-1 flex items-center justify-center rounded-full border border-neutral-300 py-3 text-sm font-medium text-neutral-800"
             >
               Do later
             </button>
@@ -252,7 +256,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     <div className="relative min-h-screen bg-white font-google-sans flex flex-col">
       {/* Dark background extension — only when card deck is visible */}
       {remaining.length > 0 && (
-        <div className="absolute top-0 inset-x-0 h-[479px] bg-olive-300 rounded-b-3xl" />
+        <div className="absolute top-0 inset-x-0 h-119.75 bg-olive-300 rounded-b-3xl" />
       )}
 
       {/* ── Header ── */}
@@ -275,9 +279,11 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-neutral-500/25 shrink-0 overflow-hidden flex items-center justify-center">
               {user.avatar && (
-                <img
+                <Image
                   src={user.avatar}
                   alt=""
+                  width={40}
+                  height={40}
                   className="w-full h-full object-cover"
                 />
               )}
@@ -295,7 +301,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                 {clockLabel}
               </p>
             </div>
-            <div className="relative h-[15px] rounded-full overflow-hidden bg-neutral-500/25">
+            <div className="relative h-3.75 rounded-full overflow-hidden bg-neutral-500/25">
               <motion.div
                 className="absolute inset-y-0 left-0 flex flex-row overflow-hidden"
                 initial={{ width: 0 }}
@@ -308,14 +314,14 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                 />
                 {progress < 100 && (
                   <>
-                    <div className="w-[3px] shrink-0 flex flex-col gap-[3px] py-[3px]">
-                      <div className="w-[3px] h-[3px] bg-neutral-800" />
-                      <div className="w-[3px] h-[3px] bg-neutral-800" />
+                    <div className="w-0.75 shrink-0 flex flex-col gap-0.75 py-0.75">
+                      <div className="w-0.75 h-0.75 bg-neutral-800" />
+                      <div className="w-0.75 h-0.75 bg-neutral-800" />
                     </div>
-                    <div className="w-[3px] shrink-0 flex flex-col gap-[3px]">
-                      <div className="w-[3px] h-[3px] bg-neutral-800" />
-                      <div className="w-[3px] h-[3px] bg-neutral-800" />
-                      <div className="w-[3px] h-[3px] bg-neutral-800" />
+                    <div className="w-0.75 shrink-0 flex flex-col gap-0.75">
+                      <div className="w-0.75 h-0.75 bg-neutral-800" />
+                      <div className="w-0.75 h-0.75 bg-neutral-800" />
+                      <div className="w-0.75 h-0.75 bg-neutral-800" />
                     </div>
                   </>
                 )}
@@ -360,7 +366,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
         {/* Card deck */}
         {remaining.length > 0 && (
           <div className="px-4 pt-8">
-            <div className="relative h-[420px]">
+            <div className="relative h-105">
               {backChore && (
                 <div
                   className="absolute -top-8 rounded-4xl border-2 border-neutral-800 bg-white"

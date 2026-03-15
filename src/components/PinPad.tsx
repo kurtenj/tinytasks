@@ -98,7 +98,7 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: "spring", bounce: 0.3 }}
-        className="bg-white border-1 border-stone-950 rounded-3xl p-8 w-full max-w-xs font-google-sans"
+        className="bg-white border border-stone-950 rounded-3xl p-8 w-full max-w-xs font-google-sans"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -168,7 +168,7 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
               <button
                 key={i}
                 onClick={() => handleDigit(k)}
-                className="h-14 text-lg font-regular text-stone-950 rounded-2xl bg-stone-50 border-1 border-stone-200 hover:bg-stone-100 active:bg-stone-800 active:text-white active:scale-[0.97] transition-all"
+                className="h-14 text-lg font-regular text-stone-950 rounded-2xl bg-stone-50 border border-stone-200 hover:bg-stone-100 active:bg-stone-800 active:text-white active:scale-[0.97] transition-all"
               >
                 {k}
               </button>
