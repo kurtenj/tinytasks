@@ -92,9 +92,9 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   };
 
   return (
-    <div className="min-h-screen bg-olive-300 font-funnel">
+    <div className="min-h-screen bg-neutral-100 font-google-sans">
       {/* Header */}
-      <div className="bg-olive-950 text-white px-4 pb-4">
+      <div className="bg-stone-950 text-white px-4 pb-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between pt-5 mb-4">
             <h1 className="text-xl font-medium">Admin Panel</h1>
@@ -113,7 +113,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-olive-950/50 rounded-xl p-1">
+          <div className="flex gap-1 bg-black/20 rounded-xl p-1">
             {TABS.map(({ id, icon: Icon, label }) => (
               <button
                 key={id}
@@ -172,7 +172,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                         </span>
                       ) : null}
                       {chore.assignedTo && chore.assignedTo.length > 0 && (
-                        <span className="text-xs bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full border border-amber-200">
+                        <span className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded-full border border-stone-200">
                           {chore.assignedTo.length === 1
                             ? kids?.find((k) => k._id === chore.assignedTo![0])?.name ?? "1 kid"
                             : `${chore.assignedTo.length} kids`}
@@ -182,7 +182,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {completedChoreIds.has(chore._id) && (
-                      <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-300">
+                      <span className="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full border border-stone-300">
                         Today ✓
                       </span>
                     )}

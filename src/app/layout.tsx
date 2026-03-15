@@ -1,12 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Knewave, Funnel_Display } from "next/font/google";
+import { Geist, Google_Sans } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
-const knewave = Knewave({ subsets: ["latin"], weight: "400", variable: "--font-knewave" });
-const funnelDisplay = Funnel_Display({ subsets: ["latin"], variable: "--font-funnel" });
+const googleSans = Google_Sans({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-google-sans" });
 
 export const metadata: Metadata = {
   title: "Tiny Tasks",
@@ -32,7 +31,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${geist.variable} ${knewave.variable} ${funnelDisplay.variable} antialiased`}>
+      <body className={`${geist.variable} ${googleSans.variable} antialiased`}>
         <ConvexClientProvider>
           {children}
           <Toaster />

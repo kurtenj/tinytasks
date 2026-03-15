@@ -57,9 +57,9 @@ Images live in `public/chores/*.png`. The API route reads this directory dynamic
 
 ### Frontend Patterns
 - **KidDashboard card deck**: swipeable stack (max 3 visible). `useDragControls` + imperative `animate()` — card flies off first, Convex mutation fires after ~210ms to prevent spring-back. Double-tap detected via `onPointerDown` timestamp diff (< 350ms). Single-card decks spring back on swipe instead of cycling.
-- **KidDashboard layout**: `bg-olive-950` header slides in from top; `bg-olive-300` page background. When chores remain, an `absolute h-[479px]` dark background extends behind the card deck. When no chores remain the absolute bg is hidden and the header shrinks to natural height.
+- **KidDashboard layout**: `bg-stone-950` header slides in from top; `bg-neutral-100` page background. When chores remain, an `absolute h-[479px]` dark background extends behind the card deck. When no chores remain the absolute bg is hidden and the header shrinks to natural height.
 - **Reward button**: `fixed bottom-0` — always visible once chest is unlocked, slides in from bottom.
-- **Color scheme**: `bg-olive-950` header/dark, `bg-olive-300` page background, `bg-white` cards with `border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09]`. Consistent across KidDashboard, UserSelector, AdminDashboard.
+- **Color scheme**: Black & white / neutral only. `bg-stone-950` header/dark, `bg-neutral-100` page background, `bg-white` cards with `border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09]`. Consistent across KidDashboard, UserSelector, AdminDashboard. No olive, amber, or other saturated colors.
 - **Admin**: PIN stored in `settings` table under key `"adminPin"`. Single "Parents" button (uses `admins[0]`). `PinPad` has no `adminName` — all admins share the same PIN.
 - **Animations**: entry springs use `stiffness: 400, damping: 28` throughout. Header slides from `y: -24`, bottom elements from `y: 24`.
 - `AdminDashboard` uses Lucide icons throughout. `ChoreAvatar` renders image thumbnail or dynamic Lucide icon by name.

@@ -6,6 +6,11 @@ export default defineSchema({
     name: v.string(),
     role: v.union(v.literal("admin"), v.literal("kid")),
     avatar: v.optional(v.string()),
+    // Legacy fields kept optional for existing documents
+    points: v.optional(v.number()),
+    level: v.optional(v.number()),
+    streak: v.optional(v.number()),
+    equippedTheme: v.optional(v.string()),
   }),
   chores: defineTable({
     title: v.string(),

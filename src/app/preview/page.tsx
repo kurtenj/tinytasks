@@ -1,7 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useState, useEffect, useRef } from "react";
 import {
   motion,
   AnimatePresence,
@@ -11,43 +9,65 @@ import {
   animate,
 } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
-import type { Doc, Id } from "../../convex/_generated/dataModel";
-import * as LucideIcons from "lucide-react";
-import { useLiveClock, getToday } from "@/lib/time";
 
-function ChoreIcon({
-  iconName,
-  className,
+// ── Mock data ──────────────────────────────────────────────────────────────────
+
+const MOCK_REMAINING = [
+  {
+    _id: "chore1",
+    title: "Make your bed",
+    description: "Fluff the pillows too!",
+    imageUrl: "/chores/make-bed.png",
+    scheduleType: "repeating" as const,
+  },
+  {
+    _id: "chore2",
+    title: "Clean your room",
+    description: "Put everything back in its place",
+    imageUrl: "/chores/clean-room.png",
+    scheduleType: "floating" as const,
+  },
+  {
+    _id: "chore3",
+    title: "Do homework",
+    description: "All of it!",
+    imageUrl: "/chores/homework.png",
+    scheduleType: "floating" as const,
+  },
+];
+
+const MOCK_COMPLETED = [
+  { _id: "done1", title: "Feed the dog" },
+  { _id: "done2", title: "Unload dishwasher" },
+];
+
+// ── Tiny clock ─────────────────────────────────────────────────────────────────
+
+function useClock() {
+  const [label, setLabel] = useState("");
+  useEffect(() => {
+    const fmt = () =>
+      new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    setLabel(fmt());
+    const id = setInterval(() => setLabel(fmt()), 10_000);
+    return () => clearInterval(id);
+  }, []);
+  return label;
+}
+
+// ── Mock ChoreCard ─────────────────────────────────────────────────────────────
+
+function ChoreCard({
+  chore,
+  onComplete,
+  onCycle,
+  onSnooze,
 }: {
-  iconName: string;
-  className?: string;
-}) {
-  const Icon = (
-    LucideIcons as unknown as Record<
-      string,
-      React.ComponentType<{ className?: string }>
-    >
-  )[iconName];
-  if (!Icon) return null;
-  return <Icon className={className} />;
-}
-
-
-interface KidDashboardProps {
-  userId: Id<"users">;
-  onSwitchUser: () => void;
-}
-
-// ── ChoreCard ─────────────────────────────────────────────────────────────────
-
-interface ChoreCardProps {
-  chore: Doc<"chores">;
+  chore: (typeof MOCK_REMAINING)[0];
   onComplete: () => void;
-  onCycle?: (direction: 1 | -1) => void;
+  onCycle?: (d: 1 | -1) => void;
   onSnooze?: () => void;
-}
-
-function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
+}) {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-250, 0, 250], [-18, 0, 18]);
   const dragControls = useDragControls();
@@ -72,7 +92,7 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
     if (now - lastPointerDownRef.current < 350) {
       lastPointerDownRef.current = 0;
       doComplete();
-      return; // skip drag start on double tap
+      return;
     }
     lastPointerDownRef.current = now;
     dragControls.start(e);
@@ -89,11 +109,8 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
       onDragEnd={(_, info) => {
         const isSwipe =
           Math.abs(info.offset.x) > 80 || Math.abs(info.velocity.x) > 600;
-        if (isSwipe) {
-          doCycle(info.offset.x >= 0 ? 1 : -1);
-        } else {
-          animate(x, 0, { type: "spring", stiffness: 320, damping: 22 });
-        }
+        if (isSwipe) doCycle(info.offset.x >= 0 ? 1 : -1);
+        else animate(x, 0, { type: "spring", stiffness: 320, damping: 22 });
       }}
       initial={{ scale: 0.92, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
@@ -102,31 +119,24 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
       className="absolute inset-0 rounded-4xl border-2 border-neutral-800 overflow-hidden select-none touch-none bg-white"
       onPointerDown={handlePointerDown}
     >
-      {/* Illustration — fills upper portion of card, above bottom content */}
       <div className="absolute inset-x-0 top-0 bottom-[140px] flex items-center justify-center pointer-events-none px-6 pt-14">
-        {chore.imageUrl ? (
+        {chore.imageUrl && (
           <img
             src={chore.imageUrl}
             alt={chore.title}
             className="w-full h-full object-contain"
             draggable={false}
           />
-        ) : chore.icon ? (
-          <ChoreIcon
-            iconName={chore.icon}
-            className="w-24 h-24 text-stone-950/40"
-          />
-        ) : null}
+        )}
       </div>
 
-      {/* Title + description + buttons — bottom of card */}
       <div className="absolute bottom-0 inset-x-0 px-4 pb-4 flex flex-col gap-3">
         <div className="px-2 pointer-events-none">
           <p className="text-neutral-800 text-xl font-medium leading-tight mb-1">
             {chore.title}
           </p>
           <p className="text-neutral-500 text-sm font-medium">
-            {chore.description ?? ""}
+            {chore.description}
           </p>
         </div>
         <div className="flex gap-3 w-full">
@@ -152,84 +162,36 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
   );
 }
 
-// ── KidDashboard ──────────────────────────────────────────────────────────────
+// ── Preview page ───────────────────────────────────────────────────────────────
 
-export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
+type AllowanceState = "on_track" | "earned" | "lost";
+
+export default function PreviewPage() {
+  const clock = useClock();
+  const [remaining, setRemaining] = useState(MOCK_REMAINING);
+  const [completed, setCompleted] = useState(MOCK_COMPLETED);
   const [frontOffset, setFrontOffset] = useState(0);
-  const clockLabel = useLiveClock();
+  const [allowance, setAllowance] = useState<AllowanceState>("on_track");
 
-  const today = getToday();
-  const snoozeKey = `snoozed-${userId}-${today}`;
-  const [snoozedIds, setSnoozedIds] = useState<Set<string>>(() => {
-    try {
-      const raw = localStorage.getItem(`snoozed-${userId}-${today}`);
-      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
-
-  const todayDow = new Date().getDay();
-  const isWeekend = todayDow === 0 || todayDow === 6;
-
-  const weekDates = (() => {
-    const now = new Date();
-    const dow = now.getDay();
-    const mondayOffset = dow === 0 ? -6 : 1 - dow;
-    return [0, 1, 2, 3, 4].map((i) => {
-      const d = new Date(now);
-      d.setDate(now.getDate() + mondayOffset + i);
-      return d.toLocaleDateString("en-CA");
-    });
-  })();
-
-  const user = useQuery(api.users.get, { id: userId });
-  const chores = useQuery(api.chores.listForKid, { userId, todayDow });
-  const completions = useQuery(api.completions.getTodayForUser, {
-    userId,
-    today,
-  });
-  const complete = useMutation(api.completions.complete);
-  const allowanceStatus = useQuery(api.chores.getWeeklyAllowanceStatus, {
-    userId,
-    today,
-    todayDow,
-    weekDates,
-  });
-  const allowanceAmount = useQuery(api.settings.getAllowanceAmount);
-
-  const completedIds = new Set(completions?.map((c) => c.choreId) ?? []);
-
-  const remaining =
-    chores?.filter((c) => !completedIds.has(c._id) && !snoozedIds.has(c._id)) ??
-    [];
-  const completed = chores?.filter((c) => completedIds.has(c._id)) ?? [];
-
-  const totalVisible = completed.length + remaining.length;
-  const progress =
-    totalVisible > 0
-      ? Math.min((completedIds.size / totalVisible) * 100, 100)
-      : 0;
-
-  const handleSnooze = (choreId: string) => {
-    setSnoozedIds((prev) => {
-      const next = new Set(prev);
-      next.add(choreId);
-      try {
-        localStorage.setItem(snoozeKey, JSON.stringify([...next]));
-      } catch {}
-      return next;
-    });
-    setFrontOffset(0);
-  };
-
-  // Deck cycles through remaining chores; frontOffset wraps around
   const safeOffset = remaining.length > 0 ? frontOffset % remaining.length : 0;
   const deckChores = Array.from(
     { length: Math.min(3, remaining.length) },
     (_, i) => remaining[(safeOffset + i) % remaining.length],
   );
   const [frontChore, midChore, backChore] = deckChores;
+
+  const totalVisible = completed.length + remaining.length;
+  const progress =
+    totalVisible > 0
+      ? Math.min((completed.length / totalVisible) * 100, 100)
+      : 0;
+
+  const handleComplete = () => {
+    const chore = remaining[safeOffset];
+    setRemaining((r) => r.filter((c) => c._id !== chore._id));
+    setCompleted((c) => [{ _id: chore._id, title: chore.title }, ...c]);
+    setFrontOffset(0);
+  };
 
   const handleCycle = (direction: 1 | -1) => {
     setFrontOffset((o) => {
@@ -241,22 +203,43 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     });
   };
 
-  if (!user || !chores) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-stone-400 animate-pulse text-4xl">✓</div>
-      </div>
-    );
-  }
+  const handleSnooze = () => setFrontOffset(0);
+
+  const reset = () => {
+    setRemaining(MOCK_REMAINING);
+    setCompleted(MOCK_COMPLETED);
+    setFrontOffset(0);
+  };
+
+  const isAllDone = remaining.length === 0;
 
   return (
     <div className="relative min-h-screen bg-white font-google-sans flex flex-col">
-      {/* Dark background extension — only when card deck is visible */}
-      {remaining.length > 0 && (
+      {/* Dev toolbar */}
+      <div className="fixed top-2 right-2 z-50 flex gap-1.5 flex-wrap justify-end max-w-xs">
+        <button
+          onClick={reset}
+          className="text-xs bg-neutral-950 text-white px-2.5 py-1 rounded-lg"
+        >
+          Reset
+        </button>
+        {(["on_track", "earned", "lost"] as AllowanceState[]).map((s) => (
+          <button
+            key={s}
+            onClick={() => setAllowance(s)}
+            className={`text-xs px-2.5 py-1 rounded-lg border ${allowance === s ? "bg-neutral-800 text-white border-neutral-800" : "bg-white text-neutral-600 border-neutral-300"}`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      {/* Dark background extension */}
+      {!isAllDone && (
         <div className="absolute top-0 inset-x-0 h-[479px] bg-olive-300 rounded-b-3xl" />
       )}
 
-      {/* ── Header ── */}
+      {/* Header */}
       <motion.div
         initial={{ y: -24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -264,37 +247,21 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
         className="relative bg-olive-300 rounded-b-3xl px-4 pt-4 pb-5"
       >
         <div className="max-w-lg mx-auto space-y-4">
-          {/* Back */}
-          <button
-            onClick={onSwitchUser}
-            className="active:scale-[0.97] transition-transform"
-          >
+          <button className="active:scale-[0.97] transition-transform">
             <ArrowLeft className="w-5 h-5 text-neutral-800" />
           </button>
 
-          {/* Avatar + Name */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-neutral-500/25 shrink-0 overflow-hidden flex items-center justify-center">
-              {user.avatar && (
-                <img
-                  src={user.avatar}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
+            <div className="w-10 h-10 rounded-full bg-neutral-500/25 shrink-0" />
             <p className="text-3xl leading-10 font-google-sans text-neutral-800">
-              {user.name}
+              Alex
             </p>
           </div>
 
-          {/* Progress label + clock, then bar */}
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <p className="text-sm font-medium text-neutral-800">Progress</p>
-              <p className="text-sm font-medium text-neutral-800">
-                {clockLabel}
-              </p>
+              <p className="text-sm font-medium text-neutral-800">{clock}</p>
             </div>
             <div className="relative h-[15px] rounded-full overflow-hidden bg-neutral-500/25">
               <motion.div
@@ -324,42 +291,40 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
             </div>
           </div>
 
-          {/* Allowance status */}
-          {allowanceAmount && allowanceStatus && (
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-2 h-2 rounded-full shrink-0 ${
-                  allowanceStatus === "earned"
-                    ? "bg-green-600"
-                    : allowanceStatus === "lost"
-                      ? "bg-red-600"
-                      : "bg-neutral-800"
-                }`}
-              />
-              <span
-                className={`text-sm font-medium ${
-                  allowanceStatus === "earned"
-                    ? "text-green-600"
-                    : allowanceStatus === "lost"
-                      ? "text-red-600"
-                      : "text-neutral-800"
-                }`}
-              >
-                {allowanceStatus === "earned"
-                  ? "Allowance earned!"
-                  : allowanceStatus === "lost"
-                    ? "No allowance this week"
-                    : "Allowance on track"}
-              </span>
-            </div>
-          )}
+          {/* Allowance */}
+          <div className="flex items-center gap-2">
+            <div
+              className={`w-2 h-2 rounded-full shrink-0 ${
+                allowance === "earned"
+                  ? "bg-green-600"
+                  : allowance === "lost"
+                    ? "bg-red-600"
+                    : "bg-neutral-800"
+              }`}
+            />
+            <span
+              className={`text-sm font-medium ${
+                allowance === "earned"
+                  ? "text-green-600"
+                  : allowance === "lost"
+                    ? "text-red-600"
+                    : "text-neutral-800"
+              }`}
+            >
+              {allowance === "earned"
+                ? "Allowance earned!"
+                : allowance === "lost"
+                  ? "No allowance this week"
+                  : "Allowance on track"}
+            </span>
+          </div>
         </div>
       </motion.div>
 
-      {/* ── Body ── */}
+      {/* Body */}
       <div className="relative max-w-lg mx-auto flex flex-col flex-1 w-full">
         {/* Card deck */}
-        {remaining.length > 0 && (
+        {!isAllDone && (
           <div className="px-4 pt-8">
             <div className="relative h-[420px]">
               {backChore && (
@@ -379,13 +344,11 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                   <ChoreCard
                     key={frontChore._id}
                     chore={frontChore}
-                    onComplete={() =>
-                      complete({ choreId: frontChore._id, userId, today })
-                    }
+                    onComplete={handleComplete}
                     onCycle={remaining.length > 1 ? handleCycle : undefined}
                     onSnooze={
                       frontChore.scheduleType !== "repeating"
-                        ? () => handleSnooze(frontChore._id)
+                        ? handleSnooze
                         : undefined
                     }
                   />
@@ -395,18 +358,16 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
           </div>
         )}
 
-        {/* Empty state — centered between header and completed list */}
-        {remaining.length === 0 && (isWeekend || chores.length > 0) && (
+        {/* Empty state */}
+        {isAllDone && (
           <div className="flex-1 flex items-center justify-center">
             <p className="text-xl font-regular text-neutral-400">
-              {isWeekend
-                ? "No chores today, enjoy the weekend."
-                : "All chores done, good job!"}
+              All chores done, good job!
             </p>
           </div>
         )}
 
-        {/* Completed checklist — pushed to bottom */}
+        {/* Completed list */}
         {completed.length > 0 && (
           <div className="mt-auto px-4 pt-6 pb-8">
             <p className="text-sm font-medium text-neutral-400 mb-1 pointer-events-none">

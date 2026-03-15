@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const list = query({
@@ -52,5 +52,21 @@ export const remove = mutation({
       .collect();
     await Promise.all(completions.map((c) => ctx.db.delete(c._id)));
     await ctx.db.delete(id);
+  },
+});
+
+export const stripLegacyFields = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+    await Promise.all(
+      users.map((u) => {
+        const { points, level, streak, equippedTheme, ..._ } = u as typeof u & {
+          points?: unknown; level?: unknown; streak?: unknown; equippedTheme?: unknown;
+        };
+        if (points === undefined && level === undefined && streak === undefined && equippedTheme === undefined) return;
+        return ctx.db.patch(u._id, { points: undefined, level: undefined, streak: undefined, equippedTheme: undefined });
+      })
+    );
   },
 });

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { Delete, X } from "lucide-react";
+import { Eraser, X } from "lucide-react";
 
 interface PinPadProps {
   onSuccess: () => void;
@@ -74,7 +74,9 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"];
 
   const title = isSetup
-    ? phase === "enter" ? "Set Admin PIN" : "Confirm PIN"
+    ? phase === "enter"
+      ? "Set Admin PIN"
+      : "Confirm PIN"
     : "Parent Access";
 
   const subtitle = isSetup
@@ -96,7 +98,7 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: "spring", bounce: 0.3 }}
-        className="bg-stone-100 border-4 border-stone-950 shadow-[6px_6px_0px_#0c0c09] rounded-3xl p-8 w-full max-w-xs font-funnel"
+        className="bg-white border-1 border-stone-950 rounded-3xl p-8 w-full max-w-xs font-google-sans"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -105,7 +107,10 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
             <h2 className="text-xl font-medium text-stone-950">{title}</h2>
             <p className="text-sm text-stone-500 mt-0.5">{subtitle}</p>
           </div>
-          <button onClick={onCancel} className="text-stone-400 hover:text-stone-700 p-1 transition-colors">
+          <button
+            onClick={onCancel}
+            className="text-stone-400 hover:text-stone-700 p-1 transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -153,9 +158,9 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
                 <button
                   key={i}
                   onClick={handleDelete}
-                  className="h-14 flex items-center justify-center rounded-2xl text-stone-500 hover:bg-stone-200 active:bg-stone-300 active:scale-[0.97] transition-all"
+                  className="h-14 flex items-center justify-center rounded-2xl text-stone-400 hover:bg-stone-200 active:bg-stone-300 active:scale-[0.97] transition-all"
                 >
-                  <Delete className="w-5 h-5" />
+                  <Eraser className="w-5 h-5" />
                 </button>
               );
             }
@@ -163,7 +168,7 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
               <button
                 key={i}
                 onClick={() => handleDigit(k)}
-                className="h-14 text-xl font-semibold text-stone-950 rounded-2xl bg-white border-2 border-stone-200 hover:border-stone-950 active:scale-[0.97] transition-all"
+                className="h-14 text-lg font-regular text-stone-950 rounded-2xl bg-stone-50 border-1 border-stone-200 hover:bg-stone-100 active:bg-stone-800 active:text-white active:scale-[0.97] transition-all"
               >
                 {k}
               </button>

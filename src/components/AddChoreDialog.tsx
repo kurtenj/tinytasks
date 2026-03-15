@@ -109,10 +109,10 @@ export function AddChoreDialog({ userId, onClose, chore }: AddChoreDialogProps) 
       <motion.div
         initial={{ y: 100 }}
         animate={{ y: 0 }}
-        className="bg-stone-100 border-4 border-stone-950 shadow-[6px_6px_0px_#0c0c09] rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md font-funnel max-h-[90svh] overflow-y-auto"
+        className="bg-stone-100 border-4 border-stone-950 shadow-[6px_6px_0px_#0c0c09] rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md font-google-sans max-h-[90svh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="font-knewave text-2xl text-stone-950 mb-4">
+        <h2 className="font-google-sans text-2xl text-stone-950 mb-4">
           {chore ? "Edit Chore" : "Add Chore"}
         </h2>
 
@@ -197,7 +197,7 @@ export function AddChoreDialog({ userId, onClose, chore }: AddChoreDialogProps) 
                   onClick={() => setScheduleType(type)}
                   className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-[0.97] border-2 ${
                     scheduleType === type
-                      ? "bg-amber-100 border-stone-950 text-stone-950"
+                      ? "bg-stone-200 border-stone-950 text-stone-950"
                       : "bg-white border-stone-200 text-stone-600 hover:bg-stone-50"
                   }`}
                 >
@@ -242,7 +242,7 @@ export function AddChoreDialog({ userId, onClose, chore }: AddChoreDialogProps) 
                     onClick={() => toggleKid(kid._id)}
                     className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all active:scale-[0.97] border-2 ${
                       assignedTo.includes(kid._id)
-                        ? "bg-amber-100 border-stone-950 text-stone-950"
+                        ? "bg-stone-200 border-stone-950 text-stone-950"
                         : "bg-white border-stone-200 text-stone-600 hover:bg-stone-50"
                     }`}
                   >

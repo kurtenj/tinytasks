@@ -7,28 +7,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { PinPad } from "@/components/PinPad";
 import { useLiveClock, getToday } from "@/lib/time";
+import { UserLock } from "lucide-react";
 
-function ParentsIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#0C0C09"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ opacity: 0.5, flexShrink: 0 }}
-    >
-      <path d="M19 16v-2a2 2 0 0 0-4 0v2" />
-      <path d="M9.5 15H7a4 4 0 0 0-4 4v2" />
-      <circle cx="10" cy="7" r="4" />
-      <rect x="13" y="16" width="8" height="5" rx="0.9" />
-    </svg>
-  );
-}
+const KID_COLORS = [
+  "#f5f5f5",
+  "#e5e5e5",
+  "#d4d4d4",
+  "#f5f5f5",
+  "#e5e5e5",
+  "#d4d4d4",
+];
 
 interface UserSelectorProps {
   users: Doc<"users">[];
@@ -70,15 +58,14 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
     }
   };
 
-
   return (
-    <div className="min-h-svh bg-stone-100 font-funnel flex flex-col items-center pt-0 pb-4 px-4 gap-0">
+    <div className="min-h-svh bg-white font-google-sans flex flex-col items-center pt-0 pb-4 px-4 gap-0">
       {/* Title + clock */}
       <div className="flex flex-col items-center gap-12 px-0 py-6 w-full">
         <motion.h1
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="font-knewave text-[56px] leading-[68px] text-center text-stone-950 shrink-0"
+          className="font-google-sans text-[56px] leading-[68px] text-center text-stone-950 shrink-0"
         >
           Tiny{"\n"}Tasks
         </motion.h1>
@@ -124,7 +111,8 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
                 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => onSelectUser(kid._id, "kid")}
-                className="bg-olive-300 border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09] rounded-3xl flex flex-col justify-between overflow-clip p-4 w-full text-left"
+                className="rounded-full flex flex-col justify-between overflow-clip p-4 w-full text-left"
+                style={{ backgroundColor: KID_COLORS[i % KID_COLORS.length] }}
               >
                 {/* Name row with avatar dot */}
                 <div className="flex items-center gap-2">
@@ -134,7 +122,7 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
                   </span>
                 </div>
                 {remaining !== null && (
-                  <span className="text-stone-950 text-sm font-semibold mt-3 block">
+                  <span className="text-stone-950/60 text-sm font-regular mt-3 block">
                     {remaining} {remaining === 1 ? "chore" : "chores"} left
                   </span>
                 )}
@@ -149,20 +137,28 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
         <motion.button
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 400, damping: 28, delay: 0.3 }}
+          transition={{
+            type: "spring",
+            stiffness: 400,
+            damping: 28,
+            delay: 0.3,
+          }}
           whileTap={{ scale: 0.97 }}
           onClick={() => setPendingAdmin(admins[0])}
-          className="flex items-center justify-center gap-2 bg-stone-200 rounded-3xl py-4 w-full shrink-0 hover:bg-stone-300 transition-colors"
+          className="flex items-center justify-center gap-2 bg-stone-100 rounded-full py-4 w-full shrink-0 hover:bg-stone-200 transition-colors"
         >
-          <ParentsIcon />
-          <span className="text-stone-950/50 text-xl">Parents</span>
+          <UserLock className="w-5 h-5 opacity-50 shrink-0" />
+          <span className="text-stone-500 text-lg">Admin</span>
         </motion.button>
       )}
 
       <AnimatePresence>
         {pendingAdmin && (
           <PinPad
-            onSuccess={() => { onSelectUser(pendingAdmin._id, "admin"); setPendingAdmin(null); }}
+            onSuccess={() => {
+              onSelectUser(pendingAdmin._id, "admin");
+              setPendingAdmin(null);
+            }}
             onCancel={() => setPendingAdmin(null)}
           />
         )}
