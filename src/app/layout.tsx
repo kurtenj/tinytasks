@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Google_Sans } from "next/font/google";
+import { Geist, Outfit } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
-const googleSans = Google_Sans({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-google-sans" });
+const googleSans = Outfit({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-google-sans" });
 
 export const metadata: Metadata = {
   title: "Tiny Tasks",
