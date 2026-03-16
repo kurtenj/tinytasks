@@ -20,7 +20,8 @@
       "Bash(npm run build)",
       "WebFetch(domain:www.cssscript.com)",
       "Read(//c/Users/Jonathan/.agents/skills/emil-design-eng/**)",
-      "Read(//c/Users/Jonathan/.claude/skills/**)"
+      "Read(//c/Users/Jonathan/.claude/skills/**)",
+      "Bash(ls -la public/*.png)"
     ]
   }
 }

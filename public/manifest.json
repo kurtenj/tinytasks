@@ -4,8 +4,8 @@
   "description": "Family chores app — earn your treasure!",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#7c3aed",
-  "theme_color": "#7c3aed",
+  "background_color": "#f5f5f4",
+  "theme_color": "#0c0c09",
   "icons": [
     {
       "src": "/icon-192.png",
