@@ -7,6 +7,7 @@ import {
   useTransform,
   useDragControls,
   animate,
+  useAnimationFrame,
 } from "framer-motion";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
@@ -41,6 +42,33 @@ const MOCK_COMPLETED = [
   { _id: "done1", title: "Feed the dog" },
   { _id: "done2", title: "Unload dishwasher" },
 ];
+
+// ── Candy stripe progress bar ─────────────────────────────────────────────────
+
+function CandyStripeBar({ progress }: { progress: number }) {
+  const offset = useMotionValue(0);
+  const backgroundPosition = useTransform(offset, (v) => `${v}px 0`);
+
+  useAnimationFrame((_, delta) => {
+    offset.set(offset.get() + delta * 0.04);
+  });
+
+  return (
+    <div className="relative h-3.75 rounded-full overflow-hidden bg-neutral-500/25">
+      <motion.div
+        className="absolute inset-y-0 left-0"
+        style={{
+          background:
+            "repeating-linear-gradient(-45deg, #262626, #262626 10px, #404040 10px, #404040 20px)",
+          backgroundPosition,
+        }}
+        initial={{ width: 0 }}
+        animate={{ width: `${progress}%` }}
+        transition={{ type: "spring", stiffness: 200, damping: 24 }}
+      />
+    </div>
+  );
+}
 
 // ── Tiny clock ─────────────────────────────────────────────────────────────────
 
@@ -239,7 +267,7 @@ export default function PreviewPage() {
 
       {/* Dark background extension */}
       {!isAllDone && (
-        <div className="absolute top-0 inset-x-0 h--119.75 bg-olive-300 rounded-b-3xl" />
+        <div className="absolute top-0 inset-x-0 h-119.75 bg-olive-200 rounded-b-3xl" />
       )}
 
       {/* Header */}
@@ -247,7 +275,7 @@ export default function PreviewPage() {
         initial={{ y: -24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 28 }}
-        className="relative bg-olive-300 rounded-b-3xl px-4 pt-4 pb-5"
+        className="relative bg-olive-200 rounded-b-4xl px-4 pt-4 pb-5"
       >
         <div className="max-w-lg mx-auto space-y-4">
           <button className="active:scale-[0.97] transition-transform">
@@ -266,32 +294,7 @@ export default function PreviewPage() {
               <p className="text-sm font-medium text-neutral-800">Progress</p>
               <p className="text-sm font-medium text-neutral-800">{clock}</p>
             </div>
-            <div className="relative h-3.75 rounded-full overflow-hidden bg-neutral-500/25">
-              <motion.div
-                className="absolute inset-y-0 left-0 flex flex-row overflow-hidden"
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ type: "spring", stiffness: 200, damping: 24 }}
-              >
-                <div
-                  className="flex-1 bg-neutral-800"
-                  style={{ minWidth: 0 }}
-                />
-                {progress < 100 && (
-                  <>
-                    <div className="w-0.75 shrink-0 flex flex-col gap-0.75 py-0.75">
-                      <div className="w-0.75 h-0.75 bg-neutral-800" />
-                      <div className="w-0.75 h-0.75 bg-neutral-800" />
-                    </div>
-                    <div className="w-0.75 shrink-0 flex flex-col gap-0.75">
-                      <div className="w-0.75 h-0.75 bg-neutral-800" />
-                      <div className="w-0.75 h-0.75 bg-neutral-800" />
-                      <div className="w-0.75 h-0.75 bg-neutral-800" />
-                    </div>
-                  </>
-                )}
-              </motion.div>
-            </div>
+            <CandyStripeBar progress={progress} />
           </div>
 
           {/* Allowance */}

@@ -132,3 +132,19 @@
 @utility font-google-sans {
   font-family: var(--font-google-sans), system-ui, sans-serif;
 }
+
+@keyframes candystripe {
+  from { background-position: 0 0; }
+  to { background-position: 40px 0; }
+}
+
+@utility progress-stripe {
+  background: repeating-linear-gradient(
+    -45deg,
+    #262626,
+    #262626 10px,
+    #404040 10px,
+    #404040 20px
+  );
+  animation: candystripe 0.5s linear infinite;
+}

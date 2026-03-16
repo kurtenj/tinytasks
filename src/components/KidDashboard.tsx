@@ -9,6 +9,7 @@ import {
   useTransform,
   useDragControls,
   animate,
+  useAnimationFrame,
 } from "framer-motion";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
@@ -36,6 +37,33 @@ function ChoreIcon({
 interface KidDashboardProps {
   userId: Id<"users">;
   onSwitchUser: () => void;
+}
+
+// ── Candy stripe progress bar ─────────────────────────────────────────────────
+
+function CandyStripeBar({ progress }: { progress: number }) {
+  const offset = useMotionValue(0);
+  const backgroundPosition = useTransform(offset, (v) => `${v}px 0`);
+
+  useAnimationFrame((_, delta) => {
+    offset.set(offset.get() + delta * 0.04);
+  });
+
+  return (
+    <div className="relative h-3.75 rounded-full overflow-hidden bg-neutral-500/25">
+      <motion.div
+        className="absolute inset-y-0 left-0"
+        style={{
+          background:
+            "repeating-linear-gradient(-45deg, #262626, #262626 10px, #404040 10px, #404040 20px)",
+          backgroundPosition,
+        }}
+        initial={{ width: 0 }}
+        animate={{ width: `${progress}%` }}
+        transition={{ type: "spring", stiffness: 200, damping: 24 }}
+      />
+    </div>
+  );
 }
 
 // ── ChoreCard ─────────────────────────────────────────────────────────────────
@@ -256,7 +284,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     <div className="relative min-h-screen bg-white font-google-sans flex flex-col">
       {/* Dark background extension — only when card deck is visible */}
       {remaining.length > 0 && (
-        <div className="absolute top-0 inset-x-0 h-119.75 bg-olive-300 rounded-b-3xl" />
+        <div className="absolute top-0 inset-x-0 h-119.75 bg-olive-200 rounded-b-3xl" />
       )}
 
       {/* ── Header ── */}
@@ -301,32 +329,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                 {clockLabel}
               </p>
             </div>
-            <div className="relative h-3.75 rounded-full overflow-hidden bg-neutral-500/25">
-              <motion.div
-                className="absolute inset-y-0 left-0 flex flex-row overflow-hidden"
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ type: "spring", stiffness: 200, damping: 24 }}
-              >
-                <div
-                  className="flex-1 bg-neutral-800"
-                  style={{ minWidth: 0 }}
-                />
-                {progress < 100 && (
-                  <>
-                    <div className="w-0.75 shrink-0 flex flex-col gap-0.75 py-0.75">
-                      <div className="w-0.75 h-0.75 bg-neutral-800" />
-                      <div className="w-0.75 h-0.75 bg-neutral-800" />
-                    </div>
-                    <div className="w-0.75 shrink-0 flex flex-col gap-0.75">
-                      <div className="w-0.75 h-0.75 bg-neutral-800" />
-                      <div className="w-0.75 h-0.75 bg-neutral-800" />
-                      <div className="w-0.75 h-0.75 bg-neutral-800" />
-                    </div>
-                  </>
-                )}
-              </motion.div>
-            </div>
+            <CandyStripeBar progress={progress} />
           </div>
 
           {/* Allowance status */}
