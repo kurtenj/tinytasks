@@ -18,7 +18,9 @@
       "Bash(node -e \"const l = require\\(''lucide-react''\\); const names = [''Trash2'',''Utensils'',''UtensilsCrossed'',''BedDouble'',''Bed'',''Shirt'',''Sparkles'',''Droplets'',''Droplet'',''Dog'',''BookOpen'',''Leaf'',''Star'',''Smile'',''ShowerHead'',''Wind'',''Brush'']; console.log\\(names.filter\\(function\\(n\\){return l[n]!==undefined}\\).join\\('', ''\\)\\)\")",
       "Bash(npm run lint)",
       "Bash(npm run build)",
-      "WebFetch(domain:www.cssscript.com)"
+      "WebFetch(domain:www.cssscript.com)",
+      "Read(//c/Users/Jonathan/.agents/skills/emil-design-eng/**)",
+      "Read(//c/Users/Jonathan/.claude/skills/**)"
     ]
   }
 }

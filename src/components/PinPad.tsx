@@ -98,7 +98,7 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className={`w-5 h-5 rounded-full border-2 transition-all duration-150 ${
+              className={`w-5 h-5 rounded-full border-2 transition-transform duration-150 ${
                 i < display.length
                   ? "bg-stone-950 border-stone-950 scale-110"
                   : "bg-transparent border-stone-400"
@@ -132,7 +132,7 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
                 <button
                   key={i}
                   onClick={handleDelete}
-                  className="h-11 flex items-center justify-center rounded-2xl text-stone-400 hover:bg-stone-200 active:bg-stone-300 active:scale-[0.97] transition-all"
+                  className="h-11 flex items-center justify-center rounded-2xl text-stone-400 hover:bg-stone-200 active:bg-stone-300 active:scale-[0.97] transition-transform duration-150"
                 >
                   <Eraser className="w-4 h-4" />
                 </button>
@@ -142,7 +142,7 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
               <button
                 key={i}
                 onClick={() => handleDigit(k)}
-                className="h-11 text-base font-regular text-stone-950 rounded-2xl bg-stone-50 border border-stone-200 hover:bg-stone-100 active:bg-stone-800 active:text-white active:scale-[0.97] transition-all"
+                className="h-11 text-base font-regular text-stone-950 rounded-2xl bg-stone-50 border border-stone-200 hover:bg-stone-100 active:bg-stone-800 active:text-white active:scale-[0.97] transition-transform duration-150"
               >
                 {k}
               </button>

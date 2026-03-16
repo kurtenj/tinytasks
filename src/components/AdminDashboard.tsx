@@ -119,7 +119,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               <button
                 key={id}
                 onClick={() => setTab(id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all active:scale-[0.97] ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-transform duration-150 active:scale-[0.97] ${
                   tab === id
                     ? "bg-white text-stone-950 shadow-sm"
                     : "text-neutral-700 hover:text-neutral-900"
@@ -143,7 +143,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               </h2>
               <button
                 onClick={() => setShowAddChore(true)}
-                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2 px-3 rounded-xl hover:bg-stone-800 active:scale-[0.97] transition-all"
+                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2 px-3 rounded-xl hover:bg-stone-800 active:scale-[0.97] transition-transform duration-150"
               >
                 <Plus className="w-4 h-4" /> Add Chore
               </button>
@@ -272,7 +272,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                   />
                   <button
                     type="submit"
-                    className="text-xs bg-stone-950 text-white px-2.5 py-1 rounded-lg hover:bg-stone-800 active:scale-[0.97] transition-all"
+                    className="text-xs bg-stone-950 text-white px-2.5 py-1 rounded-lg hover:bg-stone-800 active:scale-[0.97] transition-transform duration-150"
                   >
                     Save
                   </button>
@@ -311,7 +311,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               <button
                 type="submit"
                 disabled={!newKidName.trim()}
-                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2.5 px-3 rounded-xl hover:bg-stone-800 active:scale-[0.97] disabled:opacity-50 transition-all"
+                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2.5 px-3 rounded-xl hover:bg-stone-800 active:scale-[0.97] disabled:opacity-50 transition-transform duration-150"
               >
                 <Plus className="w-4 h-4" /> Add
               </button>
@@ -348,7 +348,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                           />
                           <button
                             type="submit"
-                            className="text-xs bg-stone-950 text-white px-2.5 py-1 rounded-lg hover:bg-stone-800 active:scale-[0.97] transition-all"
+                            className="text-xs bg-stone-950 text-white px-2.5 py-1 rounded-lg hover:bg-stone-800 active:scale-[0.97] transition-transform duration-150"
                           >
                             Save
                           </button>
@@ -400,7 +400,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                             avatar: kid.avatar === src ? undefined : src,
                           })
                         }
-                        className={`w-8 h-8 rounded-full overflow-hidden border-2 transition-all active:scale-95 ${kid.avatar === src ? "border-stone-950" : "border-transparent opacity-50 hover:opacity-80"}`}
+                        className={`w-8 h-8 rounded-full overflow-hidden border-2 transition-transform duration-150 active:scale-95 ${kid.avatar === src ? "border-stone-950" : "border-transparent opacity-50 hover:opacity-80"}`}
                       >
                         <Image
                           src={src}

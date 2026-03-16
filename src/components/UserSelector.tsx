@@ -84,7 +84,7 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
           </p>
           <button
             onClick={handleSetupFamily}
-            className="bg-stone-950 text-white rounded-2xl px-7 py-3.5 text-lg font-medium hover:bg-stone-800 active:scale-[0.97] transition-all"
+            className="bg-stone-950 text-white rounded-2xl px-7 py-3.5 text-lg font-medium hover:bg-stone-800 active:scale-[0.97] transition-transform duration-150"
           >
             Set Up Family
           </button>

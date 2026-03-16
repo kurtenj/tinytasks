@@ -15,7 +15,7 @@ import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import * as LucideIcons from "lucide-react";
-import { useLiveClock, getToday } from "@/lib/time";
+import { useLiveClock, getToday, useChoreCountdown } from "@/lib/time";
 
 function ChoreIcon({
   iconName,
@@ -76,6 +76,7 @@ interface ChoreCardProps {
 }
 
 function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
+  const countdown = useChoreCountdown(chore.scheduleType ?? "floating");
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-250, 0, 250], [-18, 0, 18]);
   const dragControls = useDragControls();
@@ -123,62 +124,74 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
           animate(x, 0, { type: "spring", stiffness: 320, damping: 22 });
         }
       }}
-      initial={{ scale: 0.92, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
+      initial={{ scale: 0.93, opacity: 1, y: -16 }}
+      animate={{ scale: 1, opacity: 1, y: 0 }}
       exit={{ opacity: 0, transition: { duration: 0 } }}
-      transition={{ type: "spring", stiffness: 380, damping: 28 }}
+      transition={{ type: "spring", stiffness: 480, damping: 34 }}
       className="absolute inset-0 rounded-4xl border-2 border-neutral-800 overflow-hidden select-none touch-none bg-white"
       onPointerDown={handlePointerDown}
     >
-      {/* Illustration — fills upper portion of card, above bottom content */}
-      <div className="absolute inset-x-0 top-0 bottom-35 pointer-events-none px-6 pt-14">
-        {chore.imageUrl ? (
-          <div className="relative w-full h-full">
-            <Image
-              src={chore.imageUrl}
-              alt={chore.title}
-              fill
-              className="object-contain"
-              sizes="(max-width: 512px) 100vw, 512px"
+      <motion.div
+        className="absolute inset-0"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.18, delay: 0.06 }}
+      >
+        {/* Illustration — fills upper portion of card, above bottom content */}
+        <div className="absolute inset-x-0 top-0 bottom-35 pointer-events-none px-0 pt-4">
+          {chore.imageUrl ? (
+            <div className="relative w-full h-full">
+              <Image
+                src={chore.imageUrl}
+                alt={chore.title}
+                fill
+                className="object-contain"
+                sizes="(max-width: 512px) 100vw, 512px"
+              />
+            </div>
+          ) : chore.icon ? (
+            <ChoreIcon
+              iconName={chore.icon}
+              className="w-24 h-24 text-stone-950/40"
             />
-          </div>
-        ) : chore.icon ? (
-          <ChoreIcon
-            iconName={chore.icon}
-            className="w-24 h-24 text-stone-950/40"
-          />
-        ) : null}
-      </div>
-
-      {/* Title + description + buttons — bottom of card */}
-      <div className="absolute bottom-0 inset-x-0 px-4 pb-4 flex flex-col gap-3">
-        <div className="px-2 pointer-events-none">
-          <p className="text-neutral-800 text-xl font-medium leading-tight mb-1">
-            {chore.title}
-          </p>
-          <p className="text-neutral-500 text-sm font-medium">
-            {chore.description ?? ""}
-          </p>
+          ) : null}
         </div>
-        <div className="flex gap-3 w-full">
-          <button
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={doComplete}
-            className="flex-1 flex items-center justify-center rounded-full border border-neutral-300 py-3 text-sm font-medium text-neutral-800"
-          >
-            Complete
-          </button>
-          {onSnooze && (
+
+        {/* Title + description + buttons — bottom of card */}
+        <div className="absolute bottom-0 inset-x-0 px-4 pb-4 flex flex-col gap-3">
+          <div className="px-2 pointer-events-none">
+            <p className="text-neutral-800 text-xl font-medium leading-tight mb-1">
+              {chore.title}
+            </p>
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="text-neutral-500 text-sm font-medium">
+                {chore.description ?? ""}
+              </p>
+              <span className="text-neutral-400 text-sm font-medium tabular-nums shrink-0">
+                {countdown}
+              </span>
+            </div>
+          </div>
+          <div className="flex gap-3 w-full">
             <button
               onPointerDown={(e) => e.stopPropagation()}
-              onClick={onSnooze}
+              onClick={doComplete}
               className="flex-1 flex items-center justify-center rounded-full border border-neutral-300 py-3 text-sm font-medium text-neutral-800"
             >
-              Do later
+              Complete
             </button>
-          )}
+            {onSnooze && (
+              <button
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={onSnooze}
+                className="flex-1 flex items-center justify-center rounded-full border border-neutral-300 py-3 text-sm font-medium text-neutral-800"
+              >
+                Do later
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }

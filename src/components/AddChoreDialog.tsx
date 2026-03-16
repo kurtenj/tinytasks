@@ -148,7 +148,7 @@ export function AddChoreDialog({
                     key={filename}
                     type="button"
                     onClick={() => selectImage(filename)}
-                    className={`relative aspect-square rounded-2xl overflow-hidden transition-all active:scale-[0.97] border-2 outline-none bg-neutral-100 ${
+                    className={`relative aspect-square rounded-2xl overflow-hidden transition-transform duration-150 active:scale-[0.97] border-2 outline-none bg-neutral-100 ${
                       selected
                         ? "border-neutral-800 scale-105"
                         : "border-transparent"
@@ -168,7 +168,7 @@ export function AddChoreDialog({
               <button
                 type="button"
                 onClick={() => setImageUrl("")}
-                className={`aspect-square rounded-2xl border-2 flex items-center justify-center transition-all active:scale-[0.97] outline-none ${
+                className={`aspect-square rounded-2xl border-2 flex items-center justify-center transition-transform duration-150 active:scale-[0.97] outline-none ${
                   !imageUrl
                     ? "border-neutral-800 bg-neutral-100"
                     : "border-transparent bg-neutral-100 hover:border-neutral-300"
@@ -221,7 +221,7 @@ export function AddChoreDialog({
                   key={type}
                   type="button"
                   onClick={() => setScheduleType(type)}
-                  className={`flex-1 py-2.5 rounded-full text-sm font-medium transition-all active:scale-[0.97] border ${
+                  className={`flex-1 py-2.5 rounded-full text-sm font-medium transition-transform duration-150 active:scale-[0.97] border ${
                     scheduleType === type
                       ? "bg-neutral-800 border-neutral-800 text-white"
                       : "bg-white border-neutral-200 text-neutral-500 hover:border-neutral-400"
@@ -246,7 +246,7 @@ export function AddChoreDialog({
                       key={i}
                       type="button"
                       onClick={() => toggleDay(i)}
-                      className={`flex-1 h-9 rounded-full text-xs font-semibold transition-all active:scale-[0.97] border ${
+                      className={`flex-1 h-9 rounded-full text-xs font-semibold transition-transform duration-150 active:scale-[0.97] border ${
                         daysOfWeek.includes(i)
                           ? "bg-neutral-800 border-neutral-800 text-white"
                           : "bg-white border-neutral-200 text-neutral-500 hover:border-neutral-400"
@@ -272,7 +272,7 @@ export function AddChoreDialog({
                     key={kid._id}
                     type="button"
                     onClick={() => toggleKid(kid._id)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all active:scale-[0.97] border ${
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-transform duration-150 active:scale-[0.97] border ${
                       assignedTo.includes(kid._id)
                         ? "bg-neutral-800 border-neutral-800 text-white"
                         : "bg-white border-neutral-200 text-neutral-500 hover:border-neutral-400"
@@ -320,14 +320,14 @@ export function AddChoreDialog({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border border-neutral-300 text-neutral-600 py-3 rounded-full font-medium hover:bg-neutral-50 active:scale-[0.97] transition-all"
+              className="flex-1 border border-neutral-300 text-neutral-600 py-3 rounded-full font-medium hover:bg-neutral-50 active:scale-[0.97] transition-transform duration-150"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!title.trim()}
-              className="flex-1 bg-neutral-800 text-white py-3 rounded-full font-medium hover:bg-neutral-900 active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100 transition-all"
+              className="flex-1 bg-neutral-800 text-white py-3 rounded-full font-medium hover:bg-neutral-900 active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100 transition-transform duration-150"
             >
               {chore ? "Save" : "Add Chore"}
             </button>
