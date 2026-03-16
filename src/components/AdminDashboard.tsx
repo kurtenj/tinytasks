@@ -5,36 +5,25 @@ import { api } from "../../convex/_generated/api";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { Plus, Trash2, LogOut, RotateCcw, CheckSquare, UserPlus, Pencil } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  RotateCcw,
+  CheckSquare,
+  UserPlus,
+  Pencil,
+  ArrowLeft,
+} from "lucide-react";
 import * as LucideIcons from "lucide-react";
-import { choreColor, DAY_ABBREVS } from "@/lib/chorePresets";
+import { DAY_ABBREVS } from "@/lib/chorePresets";
 import { getToday } from "@/lib/time";
 import { AddChoreDialog } from "@/components/AddChoreDialog";
 
 type Tab = "chores" | "kids";
 
-/** Small square showing the chore illustration or Lucide icon fallback */
-function ChoreAvatar({ imageUrl, icon, color }: { imageUrl?: string; icon?: string; color: string }) {
-  const LucideIcon = icon
-    ? (LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[icon]
-    : undefined;
-  return (
-    <div
-      className="w-10 h-10 rounded-xl shrink-0 flex items-center justify-center overflow-hidden border border-stone-200"
-      style={{ backgroundColor: color }}
-    >
-      {imageUrl ? (
-        <Image src={imageUrl} alt="" width={40} height={40} className="w-full h-full object-contain" />
-      ) : LucideIcon ? (
-        <LucideIcon className="w-5 h-5 text-stone-950/60" />
-      ) : null}
-    </div>
-  );
-}
-
 const TABS = [
   { id: "chores", icon: CheckSquare, label: "Chores" },
-  { id: "kids",   icon: UserPlus,    label: "Kids"   },
+  { id: "kids", icon: UserPlus, label: "Kids" },
 ] as const;
 
 interface AdminDashboardProps {
@@ -43,30 +32,30 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
-  const [tab,          setTab]         = useState<Tab>("chores");
+  const [tab, setTab] = useState<Tab>("chores");
   const [showAddChore, setShowAddChore] = useState(false);
   const [editingChore, setEditingChore] = useState<Doc<"chores"> | null>(null);
 
   // Kids state
-  const [newKidName,     setNewKidName]     = useState("");
-  const [renamingKidId,  setRenamingKidId]  = useState<Id<"users"> | null>(null);
-  const [renameValue,    setRenameValue]    = useState("");
-  const [allowanceInput,   setAllowanceInput]   = useState("");
+  const [newKidName, setNewKidName] = useState("");
+  const [renamingKidId, setRenamingKidId] = useState<Id<"users"> | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [allowanceInput, setAllowanceInput] = useState("");
   const [editingAllowance, setEditingAllowance] = useState(false);
 
-  const today            = getToday();
-  const chores           = useQuery(api.chores.listAll);
-  const kids             = useQuery(api.users.getKids);
+  const today = getToday();
+  const chores = useQuery(api.chores.listAll);
+  const kids = useQuery(api.users.getKids);
   const todayCompletions = useQuery(api.completions.getTodayAll, { today });
-  const allowanceAmount  = useQuery(api.settings.getAllowanceAmount);
+  const allowanceAmount = useQuery(api.settings.getAllowanceAmount);
 
-  const removeChore       = useMutation(api.chores.remove);
-  const resetDay          = useMutation(api.completions.resetDay);
-  const updateChore       = useMutation(api.chores.update);
-  const createUser        = useMutation(api.users.create);
-  const renameKid         = useMutation(api.users.rename);
-  const removeKid         = useMutation(api.users.remove);
-  const setAvatar         = useMutation(api.users.setAvatar);
+  const removeChore = useMutation(api.chores.remove);
+  const resetDay = useMutation(api.completions.resetDay);
+  const updateChore = useMutation(api.chores.update);
+  const createUser = useMutation(api.users.create);
+  const renameKid = useMutation(api.users.rename);
+  const removeKid = useMutation(api.users.remove);
+  const setAvatar = useMutation(api.users.setAvatar);
   const setAllowanceAmount = useMutation(api.settings.setAllowanceAmount);
 
   const handleSaveAllowance = async (e: React.FormEvent) => {
@@ -77,7 +66,9 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
     setEditingAllowance(false);
   };
 
-  const completedChoreIds = new Set(todayCompletions?.map((c) => c.choreId) ?? []);
+  const completedChoreIds = new Set(
+    todayCompletions?.map((c) => c.choreId) ?? [],
+  );
 
   const handleAddKid = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,34 +85,46 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-100 font-google-sans">
+    <div className="min-h-screen bg-white font-google-sans flex flex-col">
       {/* Header */}
-      <div className="bg-stone-950 text-white px-4 pb-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between pt-5 mb-4">
-            <h1 className="text-xl font-medium">Admin Panel</h1>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => resetDay({ today })}
-                className="flex items-center gap-1.5 text-white/50 hover:text-white text-sm py-1.5 px-3 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Reset Day
-              </button>
-              <button onClick={onSwitchUser} className="text-white/50 hover:text-white p-2 transition-colors">
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
+      <motion.div
+        initial={{ y: -24, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 400, damping: 28 }}
+        className="bg-olive-200 rounded-b-4xl px-4 pt-4 pb-5"
+      >
+        <div className="max-w-2xl mx-auto space-y-4">
+          {/* Back + reset */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={onSwitchUser}
+              className="active:scale-[0.97] transition-transform"
+            >
+              <ArrowLeft className="w-5 h-5 text-neutral-800" />
+            </button>
+            <button
+              onClick={() => resetDay({ today })}
+              className="flex items-center gap-1.5 text-neutral-800/50 hover:text-neutral-800 text-sm py-1.5 px-3 rounded-lg hover:bg-neutral-800/10 transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset Day
+            </button>
           </div>
 
+          <h1 className="text-3xl font-google-sans text-neutral-800">
+            Parents
+          </h1>
+
           {/* Tabs */}
-          <div className="flex gap-1 bg-black/20 rounded-xl p-1">
+          <div className="flex gap-1 bg-neutral-800/10 rounded-xl p-1">
             {TABS.map(({ id, icon: Icon, label }) => (
               <button
                 key={id}
                 onClick={() => setTab(id)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all active:scale-[0.97] ${
-                  tab === id ? "bg-white text-stone-950 shadow-sm" : "text-stone-400 hover:text-white"
+                  tab === id
+                    ? "bg-white text-stone-950 shadow-sm"
+                    : "text-neutral-700 hover:text-neutral-900"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -130,15 +133,16 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
-
+      <div className="max-w-2xl mx-auto px-4 py-6 w-full">
         {/* ── Chores Tab ── */}
         {tab === "chores" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold text-stone-950">Chores ({chores?.length ?? 0})</h2>
+              <h2 className="font-semibold text-stone-950">
+                Chores ({chores?.length ?? 0})
+              </h2>
               <button
                 onClick={() => setShowAddChore(true)}
                 className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2 px-3 rounded-xl hover:bg-stone-800 active:scale-[0.97] transition-all"
@@ -146,95 +150,118 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                 <Plus className="w-4 h-4" /> Add Chore
               </button>
             </div>
-            <div className="space-y-2">
-              {chores?.map((chore) => (
-                <div
-                  key={chore._id}
-                  className={`bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 flex items-center gap-3 ${!chore.isActive ? "opacity-50" : ""}`}
-                >
-                  <ChoreAvatar
-                    imageUrl={chore.imageUrl}
-                    icon={chore.icon}
-                    color={choreColor(chore)}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-stone-950">{chore.title}</p>
-                    {chore.description && <p className="text-sm text-stone-400">{chore.description}</p>}
-                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                      {chore.scheduleType === "repeating" ? (
-                        <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200 flex items-center gap-1 w-fit">
-                          <LucideIcons.Repeat className="w-3 h-3" />
-                          {chore.daysOfWeek && chore.daysOfWeek.length > 0
-                            ? chore.daysOfWeek.map((d) => DAY_ABBREVS[d]).join(" ")
-                            : "every day"}
-                        </span>
-                      ) : chore.scheduleType === "floating" ? (
-                        <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200 flex items-center gap-1 w-fit">
-                          <LucideIcons.Shuffle className="w-3 h-3" /> flexible
-                        </span>
-                      ) : null}
-                      {chore.assignedTo && chore.assignedTo.length > 0 && (
-                        <span className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded-full border border-stone-200">
-                          {chore.assignedTo.length === 1
-                            ? kids?.find((k) => k._id === chore.assignedTo![0])?.name ?? "1 kid"
-                            : `${chore.assignedTo.length} kids`}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    {completedChoreIds.has(chore._id) && (
-                      <span className="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full border border-stone-300">
-                        Today ✓
-                      </span>
-                    )}
-                    <label className="flex items-center gap-1 text-xs text-stone-500 cursor-pointer px-1">
-                      <input
-                        type="checkbox"
-                        checked={chore.isActive}
-                        onChange={(e) => updateChore({ id: chore._id, isActive: e.target.checked })}
-                        className="accent-stone-950"
-                      />
-                      Active
-                    </label>
-                    <button
+
+            {chores?.length === 0 ? (
+              <div className="text-center py-12 text-stone-400">
+                <CheckSquare className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                <p>No chores yet. Add some!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {chores?.map((chore) => {
+                  const LucideIcon = chore.icon
+                    ? (
+                        LucideIcons as unknown as Record<
+                          string,
+                          React.ComponentType<{ className?: string }>
+                        >
+                      )[chore.icon]
+                    : undefined;
+                  return (
+                    <div
+                      key={chore._id}
+                      className={`rounded-4xl border-2 border-neutral-800 bg-white overflow-hidden flex flex-col cursor-pointer active:scale-[0.98] transition-transform ${!chore.isActive ? "opacity-50" : ""}`}
                       onClick={() => setEditingChore(chore)}
-                      className="text-stone-300 hover:text-stone-700 p-1 transition-colors"
                     >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => removeChore({ id: chore._id })}
-                      className="text-stone-300 hover:text-red-500 p-1 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {chores?.length === 0 && (
-                <div className="text-center py-12 text-stone-400">
-                  <CheckSquare className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                  <p>No chores yet. Add some!</p>
-                </div>
-              )}
-            </div>
+                      {/* Illustration area */}
+                      <div className="relative h-36 flex items-center justify-center bg-white">
+                        {chore.imageUrl ? (
+                          <Image
+                            src={chore.imageUrl}
+                            alt={chore.title}
+                            fill
+                            className="object-contain p-4"
+                            sizes="200px"
+                          />
+                        ) : LucideIcon ? (
+                          <LucideIcon className="w-14 h-14 text-stone-950/40" />
+                        ) : null}
+
+                        {/* Completed badge */}
+                        {completedChoreIds.has(chore._id) && (
+                          <span className="absolute top-2 left-2 text-xs bg-white/80 text-stone-700 px-2 py-0.5 rounded-full">
+                            ✓ Done
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Info area */}
+                      <div className="px-3 pt-2.5 pb-3 flex flex-col gap-1.5">
+                        <p className="font-medium text-stone-950 text-sm leading-tight">
+                          {chore.title}
+                        </p>
+                        {chore.description && (
+                          <p className="text-xs text-stone-400 leading-tight">
+                            {chore.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {chore.scheduleType === "repeating" ? (
+                            <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200 flex items-center gap-1">
+                              <LucideIcons.Repeat className="w-3 h-3" />
+                              {chore.daysOfWeek && chore.daysOfWeek.length > 0
+                                ? chore.daysOfWeek
+                                    .map((d) => DAY_ABBREVS[d])
+                                    .join(" ")
+                                : "every day"}
+                            </span>
+                          ) : chore.scheduleType === "floating" ? (
+                            <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200 flex items-center gap-1">
+                              <LucideIcons.Shuffle className="w-3 h-3" />{" "}
+                              flexible
+                            </span>
+                          ) : null}
+                          {chore.assignedTo && chore.assignedTo.length > 0 && (
+                            <span className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded-full border border-stone-200">
+                              {chore.assignedTo.length === 1
+                                ? (kids?.find(
+                                    (k) => k._id === chore.assignedTo![0],
+                                  )?.name ?? "1 kid")
+                                : `${chore.assignedTo.length} kids`}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </motion.div>
         )}
 
         {/* ── Kids Tab ── */}
         {tab === "kids" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h2 className="font-semibold text-stone-950 mb-4">Kids ({kids?.length ?? 0})</h2>
+            <h2 className="font-semibold text-stone-950 mb-4">
+              Kids ({kids?.length ?? 0})
+            </h2>
 
             {/* Allowance setting */}
-            <div className="bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 mb-4 flex items-center gap-3">
+            <div className="bg-white rounded-4xl border-2 border-neutral-800 p-4 mb-4 flex items-center gap-3">
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-stone-950 text-sm">Weekly Allowance</p>
-                <p className="text-xs text-stone-400 mt-0.5">Paid on weekends when all chores are done</p>
+                <p className="font-medium text-stone-950 text-sm">
+                  Weekly Allowance
+                </p>
+                <p className="text-xs text-stone-400 mt-0.5">
+                  Paid on weekends when all chores are done
+                </p>
               </div>
               {editingAllowance ? (
-                <form onSubmit={handleSaveAllowance} className="flex gap-2 shrink-0">
+                <form
+                  onSubmit={handleSaveAllowance}
+                  className="flex gap-2 shrink-0"
+                >
                   <span className="self-center text-stone-500 text-sm">$</span>
                   <input
                     type="number"
@@ -245,19 +272,31 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                     className="w-20 border-2 border-stone-950 rounded-lg px-2 py-1 text-sm focus:outline-none"
                     autoFocus
                   />
-                  <button type="submit" className="text-xs bg-stone-950 text-white px-2.5 py-1 rounded-lg hover:bg-stone-800 active:scale-[0.97] transition-all">
+                  <button
+                    type="submit"
+                    className="text-xs bg-stone-950 text-white px-2.5 py-1 rounded-lg hover:bg-stone-800 active:scale-[0.97] transition-all"
+                  >
                     Save
                   </button>
-                  <button type="button" onClick={() => setEditingAllowance(false)} className="text-xs text-stone-400 px-1 hover:text-stone-700">
+                  <button
+                    type="button"
+                    onClick={() => setEditingAllowance(false)}
+                    className="text-xs text-stone-400 px-1 hover:text-stone-700"
+                  >
                     ✕
                   </button>
                 </form>
               ) : (
                 <button
-                  onClick={() => { setAllowanceInput(allowanceAmount ?? ""); setEditingAllowance(true); }}
+                  onClick={() => {
+                    setAllowanceInput(allowanceAmount ?? "");
+                    setEditingAllowance(true);
+                  }}
                   className="shrink-0 flex items-center gap-2 text-sm font-semibold text-stone-950 hover:text-stone-600 transition-colors"
                 >
-                  <span>{allowanceAmount ? `$${allowanceAmount}` : "Not set"}</span>
+                  <span>
+                    {allowanceAmount ? `$${allowanceAmount}` : "Not set"}
+                  </span>
                   <Pencil className="w-3.5 h-3.5 opacity-40" />
                 </button>
               )}
@@ -280,14 +319,25 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               </button>
             </form>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               {kids?.map((kid) => (
-                <div key={kid._id} className="bg-white border-4 border-stone-950 shadow-[4px_4px_0px_#0c0c09] rounded-2xl p-4 flex flex-col gap-3">
+                <div
+                  key={kid._id}
+                  className="bg-white rounded-4xl border-2 border-neutral-800 p-4 flex flex-col gap-3"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center shrink-0 overflow-hidden">
-                      {kid.avatar
-                        ? <Image src={kid.avatar} alt="" width={36} height={36} className="w-full h-full object-cover" />
-                        : <UserPlus className="w-4 h-4 text-stone-400" />}
+                      {kid.avatar ? (
+                        <Image
+                          src={kid.avatar}
+                          alt=""
+                          width={36}
+                          height={36}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <UserPlus className="w-4 h-4 text-stone-400" />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       {renamingKidId === kid._id ? (
@@ -298,10 +348,17 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                             className="flex-1 border-2 border-stone-950 rounded-lg px-2 py-1 text-sm focus:outline-none min-w-0"
                             autoFocus
                           />
-                          <button type="submit" className="text-xs bg-stone-950 text-white px-2.5 py-1 rounded-lg hover:bg-stone-800 active:scale-[0.97] transition-all">
+                          <button
+                            type="submit"
+                            className="text-xs bg-stone-950 text-white px-2.5 py-1 rounded-lg hover:bg-stone-800 active:scale-[0.97] transition-all"
+                          >
                             Save
                           </button>
-                          <button type="button" onClick={() => setRenamingKidId(null)} className="text-xs text-stone-400 px-1 hover:text-stone-700">
+                          <button
+                            type="button"
+                            onClick={() => setRenamingKidId(null)}
+                            className="text-xs text-stone-400 px-1 hover:text-stone-700"
+                          >
                             ✕
                           </button>
                         </form>
@@ -311,7 +368,10 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <button
-                        onClick={() => { setRenamingKidId(kid._id); setRenameValue(kid.name); }}
+                        onClick={() => {
+                          setRenamingKidId(kid._id);
+                          setRenameValue(kid.name);
+                        }}
                         className="text-stone-300 hover:text-stone-700 p-1 transition-colors"
                       >
                         <Pencil className="w-4 h-4" />
@@ -326,14 +386,31 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                   </div>
                   {/* Avatar picker */}
                   <div className="flex items-center gap-2 pl-1">
-                    <span className="text-xs text-stone-400 shrink-0">Avatar:</span>
-                    {["/avatars/em.png", "/avatars/judah.png", "/avatars/julian.png"].map((src) => (
+                    <span className="text-xs text-stone-400 shrink-0">
+                      Avatar:
+                    </span>
+                    {[
+                      "/avatars/em.png",
+                      "/avatars/judah.png",
+                      "/avatars/julian.png",
+                    ].map((src) => (
                       <button
                         key={src}
-                        onClick={() => setAvatar({ id: kid._id, avatar: kid.avatar === src ? undefined : src })}
+                        onClick={() =>
+                          setAvatar({
+                            id: kid._id,
+                            avatar: kid.avatar === src ? undefined : src,
+                          })
+                        }
                         className={`w-8 h-8 rounded-full overflow-hidden border-2 transition-all active:scale-95 ${kid.avatar === src ? "border-stone-950" : "border-transparent opacity-50 hover:opacity-80"}`}
                       >
-                        <Image src={src} alt="" width={32} height={32} className="w-full h-full object-cover" />
+                        <Image
+                          src={src}
+                          alt=""
+                          width={32}
+                          height={32}
+                          className="w-full h-full object-cover"
+                        />
                       </button>
                     ))}
                   </div>
@@ -354,7 +431,10 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
         <AddChoreDialog
           userId={userId}
           chore={editingChore ?? undefined}
-          onClose={() => { setShowAddChore(false); setEditingChore(null); }}
+          onClose={() => {
+            setShowAddChore(false);
+            setEditingChore(null);
+          }}
         />
       )}
     </div>
