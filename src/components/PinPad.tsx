@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eraser, X } from "lucide-react";
+import { Eraser } from "lucide-react";
 
 interface PinPadProps {
   onSuccess: () => void;
@@ -73,24 +73,12 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
 
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"];
 
-  const title = isSetup
-    ? phase === "enter"
-      ? "Set Admin PIN"
-      : "Confirm PIN"
-    : "Parent Access";
-
-  const subtitle = isSetup
-    ? phase === "enter"
-      ? "Choose a 4-digit PIN for parent access"
-      : "Enter the PIN again to confirm"
-    : "Enter your 4-digit PIN";
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
+      className="fixed inset-0 bg-neutral-800/50 backdrop-blur-sm z-50 flex items-center justify-center p-6"
       onClick={onCancel}
     >
       <motion.div
@@ -98,33 +86,19 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: "spring", bounce: 0.3 }}
-        className="bg-white border border-stone-950 rounded-3xl p-8 w-full max-w-xs font-google-sans"
+        className="bg-white border shadow-lg rounded-3xl p-6 w-full max-w-xs font-google-sans"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-medium text-stone-950">{title}</h2>
-            <p className="text-sm text-stone-500 mt-0.5">{subtitle}</p>
-          </div>
-          <button
-            onClick={onCancel}
-            className="text-stone-400 hover:text-stone-700 p-1 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
         {/* Dots */}
         <motion.div
           animate={shake ? { x: [-8, 8, -8, 8, -4, 4, 0] } : { x: 0 }}
           transition={{ duration: 0.4 }}
-          className="flex justify-center gap-4 mb-3"
+          className="flex justify-center gap-4 mb-4 mt-4"
         >
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className={`w-4 h-4 rounded-full border-2 transition-all duration-150 ${
+              className={`w-5 h-5 rounded-full border-2 transition-all duration-150 ${
                 i < display.length
                   ? "bg-stone-950 border-stone-950 scale-110"
                   : "bg-transparent border-stone-400"
@@ -150,7 +124,7 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
         </AnimatePresence>
 
         {/* Keypad */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5">
           {keys.map((k, i) => {
             if (k === "") return <div key={i} />;
             if (k === "del") {
@@ -158,9 +132,9 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
                 <button
                   key={i}
                   onClick={handleDelete}
-                  className="h-14 flex items-center justify-center rounded-2xl text-stone-400 hover:bg-stone-200 active:bg-stone-300 active:scale-[0.97] transition-all"
+                  className="h-11 flex items-center justify-center rounded-2xl text-stone-400 hover:bg-stone-200 active:bg-stone-300 active:scale-[0.97] transition-all"
                 >
-                  <Eraser className="w-5 h-5" />
+                  <Eraser className="w-4 h-4" />
                 </button>
               );
             }
@@ -168,7 +142,7 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
               <button
                 key={i}
                 onClick={() => handleDigit(k)}
-                className="h-14 text-lg font-regular text-stone-950 rounded-2xl bg-stone-50 border border-stone-200 hover:bg-stone-100 active:bg-stone-800 active:text-white active:scale-[0.97] transition-all"
+                className="h-11 text-base font-regular text-stone-950 rounded-2xl bg-stone-50 border border-stone-200 hover:bg-stone-100 active:bg-stone-800 active:text-white active:scale-[0.97] transition-all"
               >
                 {k}
               </button>

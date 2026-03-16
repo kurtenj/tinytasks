@@ -58,7 +58,7 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
         <motion.h1
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="font-google-sans text-[56px] leading-17 text-center text-stone-950 shrink-0"
+          className="font-google-sans text-3xl font-bold pt-6 text-center text-stone-950"
         >
           Tiny{"\n"}Tasks
         </motion.h1>
@@ -104,12 +104,12 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
                 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => onSelectUser(kid._id, "kid")}
-                className="rounded-full flex flex-col justify-between overflow-clip p-4 w-full text-left"
+                className="rounded-3xl flex flex-col justify-between overflow-clip p-4 w-full text-left"
                 style={{ backgroundColor: KID_COLORS[i % KID_COLORS.length] }}
               >
                 {/* Name row with avatar */}
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-black/25 shrink-0 overflow-hidden flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-3xl bg-black/25 shrink-0 overflow-hidden flex items-center justify-center">
                     {kid.avatar && (
                       <Image
                         src={kid.avatar}
@@ -148,7 +148,7 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
           }}
           whileTap={{ scale: 0.97 }}
           onClick={() => setPendingAdmin(admins[0])}
-          className="flex items-center justify-center gap-2 border border-neutral-300 rounded-full py-4 w-full shrink-0 hover:bg-neutral-100 transition-colors text-neutral-800 font-medium mt-2"
+          className="flex items-center justify-center gap-2 border border-neutral-300 rounded-3xl py-4 w-full shrink-0 hover:bg-neutral-100 transition-colors text-neutral-800 font-medium mt-2"
         >
           <span className="text-md">Admin</span>
         </motion.button>
