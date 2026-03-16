@@ -138,7 +138,7 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
         transition={{ duration: 0.18, delay: 0.06 }}
       >
         {/* Illustration — fills upper portion of card, above bottom content */}
-        <div className="absolute inset-x-0 top-0 bottom-35 pointer-events-none px-0 pt-4">
+        <div className="absolute inset-x-0 top-0 bottom-35 pointer-events-none">
           {chore.imageUrl ? (
             <div className="relative w-full h-full">
               <Image
