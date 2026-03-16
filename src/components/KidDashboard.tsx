@@ -128,7 +128,7 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
       animate={{ scale: 1, opacity: 1, y: 0 }}
       exit={{ opacity: 0, transition: { duration: 0 } }}
       transition={{ type: "spring", stiffness: 480, damping: 34 }}
-      className="absolute inset-0 rounded-4xl border-2 border-neutral-800 overflow-hidden select-none touch-none bg-white"
+      className="absolute inset-0 rounded-2xl border border-neutral-600 shadow-lg overflow-hidden select-none touch-none bg-white"
       onPointerDown={handlePointerDown}
     >
       <motion.div
@@ -176,7 +176,7 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
             <button
               onPointerDown={(e) => e.stopPropagation()}
               onClick={doComplete}
-              className="flex-1 flex items-center justify-center rounded-full border border-neutral-300 py-3 text-sm font-medium text-neutral-800"
+              className="flex-1 flex items-center justify-center rounded-md border border-neutral-300 py-3 text-sm font-medium text-neutral-800"
             >
               Complete
             </button>
@@ -184,7 +184,7 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
               <button
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={onSnooze}
-                className="flex-1 flex items-center justify-center rounded-full border border-neutral-300 py-3 text-sm font-medium text-neutral-800"
+                className="flex-1 flex items-center justify-center rounded-md border border-neutral-300 py-3 text-sm font-medium text-neutral-800"
               >
                 Do later
               </button>
@@ -288,7 +288,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   if (!user || !chores) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-stone-400 animate-pulse text-4xl">✓</div>
+        <div className="text-stone-400 animate-pulse text-2xl">✓</div>
       </div>
     );
   }
@@ -305,7 +305,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
         initial={{ y: -24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 28 }}
-        className="relative bg-olive-200 rounded-b-4xl px-4 pt-4 pb-5"
+        className="relative bg-olive-200 rounded-b-2xl px-4 pt-4 pb-5"
       >
         <div className="max-w-lg mx-auto space-y-4">
           {/* Back */}
@@ -347,23 +347,14 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
 
           {/* Allowance status */}
           {allowanceAmount && allowanceStatus && (
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-2 h-2 rounded-full shrink-0 ${
-                  allowanceStatus === "earned"
-                    ? "bg-green-600"
-                    : allowanceStatus === "lost"
-                      ? "bg-red-600"
-                      : "bg-neutral-800"
-                }`}
-              />
+            <div className="flex items-center gap-2 -mt-2">
               <span
-                className={`text-sm font-medium ${
+                className={`text-sm font-regular ${
                   allowanceStatus === "earned"
                     ? "text-green-600"
                     : allowanceStatus === "lost"
                       ? "text-red-600"
-                      : "text-neutral-800"
+                      : "text-neutral-600"
                 }`}
               >
                 {allowanceStatus === "earned"
@@ -385,13 +376,13 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
             <div className="relative h-105">
               {backChore && (
                 <div
-                  className="absolute -top-8 rounded-4xl border-2 border-neutral-800 bg-white"
+                  className="absolute -top-8 rounded-2xl border border-neutral-600 shadow-lg bg-white"
                   style={{ insetInline: "2rem", height: 420 }}
                 />
               )}
               {midChore && (
                 <div
-                  className="absolute -top-4 rounded-4xl border-2 border-neutral-800 bg-white"
+                  className="absolute -top-4 rounded-2xl border border-neutral-600 shadow-lg bg-white"
                   style={{ insetInline: "1rem", height: 420 }}
                 />
               )}
