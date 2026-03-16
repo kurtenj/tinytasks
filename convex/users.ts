@@ -68,7 +68,7 @@ export const stripLegacyFields = internalMutation({
     const users = await ctx.db.query("users").collect();
     await Promise.all(
       users.map((u) => {
-        const { points, level, streak, equippedTheme, ..._ } = u as typeof u & {
+        const { points, level, streak, equippedTheme } = u as typeof u & {
           points?: unknown; level?: unknown; streak?: unknown; equippedTheme?: unknown;
         };
         if (points === undefined && level === undefined && streak === undefined && equippedTheme === undefined) return;

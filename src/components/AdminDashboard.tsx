@@ -49,9 +49,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   const todayCompletions = useQuery(api.completions.getTodayAll, { today });
   const allowanceAmount = useQuery(api.settings.getAllowanceAmount);
 
-  const removeChore = useMutation(api.chores.remove);
   const resetDay = useMutation(api.completions.resetDay);
-  const updateChore = useMutation(api.chores.update);
   const createUser = useMutation(api.users.create);
   const renameKid = useMutation(api.users.rename);
   const removeKid = useMutation(api.users.remove);
