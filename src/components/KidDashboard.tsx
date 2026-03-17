@@ -9,7 +9,6 @@ import {
   useTransform,
   useDragControls,
   animate,
-  useAnimationFrame,
 } from "framer-motion";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
@@ -39,29 +38,84 @@ interface KidDashboardProps {
   onSwitchUser: () => void;
 }
 
-// ── Candy stripe progress bar ─────────────────────────────────────────────────
+// ── Weekly progress bar ───────────────────────────────────────────────────────
 
-function CandyStripeBar({ progress }: { progress: number }) {
-  const offset = useMotionValue(0);
-  const backgroundPosition = useTransform(offset, (v) => `${v}px 0`);
+interface WeeklyProgressBarProps {
+  days: Array<{ date: string; total: number; completed: number }> | undefined;
+  today: string;
+  todaySnoozed: number;
+  clockLabel: string;
+  allowanceStatus: string | undefined | null;
+}
 
-  useAnimationFrame((_, delta) => {
-    offset.set(offset.get() + delta * 0.04);
-  });
+function WeeklyProgressBar({
+  days,
+  today,
+  todaySnoozed,
+  clockLabel,
+  allowanceStatus,
+}: WeeklyProgressBarProps) {
+  if (!days) return null;
+
+  const todayIndex = days.findIndex((d) => d.date === today);
+  const adjustedDays = days.map((d, i) => ({
+    ...d,
+    handled:
+      i === todayIndex
+        ? Math.min(d.completed + todaySnoozed, d.total)
+        : d.completed,
+  }));
+
+  const totalHandled = adjustedDays.reduce((s, d) => s + d.handled, 0);
+  const totalExpected = adjustedDays.reduce((s, d) => s + d.total, 0);
+  const weeklyPct =
+    totalExpected > 0 ? Math.round((totalHandled / totalExpected) * 100) : 0;
+
+  const statusLabel =
+    allowanceStatus === "earned"
+      ? "All done!"
+      : allowanceStatus === "lost"
+        ? "Behind"
+        : "On track";
 
   return (
-    <div className="relative h-3.75 rounded-full overflow-hidden bg-neutral-500/25">
-      <motion.div
-        className="absolute inset-y-0 left-0"
-        style={{
-          background:
-            "repeating-linear-gradient(-45deg, #262626, #262626 10px, #404040 10px, #404040 20px)",
-          backgroundPosition,
-        }}
-        initial={{ width: 0 }}
-        animate={{ width: `${progress}%` }}
-        transition={{ type: "spring", stiffness: 200, damping: 24 }}
-      />
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-neutral-800">{clockLabel}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-neutral-600">{statusLabel}</p>
+          <p className="text-sm font-semibold text-[oklch(58%_0.031_107.3)]">
+            {weeklyPct}%
+          </p>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        {adjustedDays.map((d) => {
+          const fillPct =
+            d.total > 0 ? Math.min(d.handled / d.total, 1) * 100 : 0;
+          const isNoChores = d.total === 0;
+          const isFuture = d.date > today;
+          return (
+            <div
+              key={d.date}
+              className={`flex-1 h-[15px] rounded-full overflow-hidden ${
+                isNoChores
+                  ? "outline outline-1 outline-neutral-500/50"
+                  : "bg-neutral-500/50"
+              }`}
+            >
+              {!isNoChores && !isFuture && fillPct > 0 && (
+                <motion.div
+                  className="h-full bg-[oklch(58%_0.031_107.3)]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${fillPct}%` }}
+                  transition={{ type: "spring", stiffness: 200, damping: 24 }}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -240,7 +294,10 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     todayDow,
     weekDates,
   });
-  const allowanceAmount = useQuery(api.settings.getAllowanceAmount);
+  const weeklyProgress = useQuery(api.chores.getWeeklyProgress, {
+    userId,
+    weekDates,
+  });
 
   const completedIds = new Set(completions?.map((c) => c.choreId) ?? []);
 
@@ -249,11 +306,8 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     [];
   const completed = chores?.filter((c) => completedIds.has(c._id)) ?? [];
 
-  const totalVisible = completed.length + remaining.length;
-  const progress =
-    totalVisible > 0
-      ? Math.min((completedIds.size / totalVisible) * 100, 100)
-      : 0;
+  const todaySnoozedCount =
+    chores?.filter((c) => snoozedIds.has(c._id)).length ?? 0;
 
   const handleSnooze = (choreId: string) => {
     setSnoozedIds((prev) => {
@@ -334,37 +388,14 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
             </p>
           </div>
 
-          {/* Progress label + clock, then bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <p className="text-sm font-medium text-neutral-800">Progress</p>
-              <p className="text-sm font-medium text-neutral-800">
-                {clockLabel}
-              </p>
-            </div>
-            <CandyStripeBar progress={progress} />
-          </div>
-
-          {/* Allowance status */}
-          {allowanceAmount && allowanceStatus && (
-            <div className="flex items-center gap-2 -mt-2">
-              <span
-                className={`text-sm font-regular ${
-                  allowanceStatus === "earned"
-                    ? "text-green-600"
-                    : allowanceStatus === "lost"
-                      ? "text-red-600"
-                      : "text-neutral-600"
-                }`}
-              >
-                {allowanceStatus === "earned"
-                  ? "Allowance earned!"
-                  : allowanceStatus === "lost"
-                    ? "No allowance this week"
-                    : "Allowance on track"}
-              </span>
-            </div>
-          )}
+          {/* Weekly progress */}
+          <WeeklyProgressBar
+            days={weeklyProgress}
+            today={today}
+            todaySnoozed={todaySnoozedCount}
+            clockLabel={clockLabel}
+            allowanceStatus={allowanceStatus}
+          />
         </div>
       </motion.div>
 

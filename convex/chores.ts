@@ -123,6 +123,48 @@ export const getKidsSummary = query({
   },
 });
 
+// Returns per-day progress for the current week (Mon–Fri)
+export const getWeeklyProgress = query({
+  args: {
+    userId: v.id("users"),
+    weekDates: v.array(v.string()), // [Mon, Tue, Wed, Thu, Fri]
+  },
+  handler: async (ctx, { userId, weekDates }) => {
+    const weekDow = [1, 2, 3, 4, 5]; // Mon=1 … Fri=5
+
+    const allActive = await ctx.db
+      .query("chores")
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .collect();
+
+    const allCompletions = (
+      await Promise.all(
+        weekDates.map((date) =>
+          ctx.db
+            .query("completions")
+            .withIndex("by_user_date", (q) =>
+              q.eq("userId", userId).eq("date", date),
+            )
+            .collect(),
+        ),
+      )
+    ).flat();
+
+    return weekDates.map((date, i) => {
+      const dow = weekDow[i];
+      const dayChores = allActive.filter((c) => isChoreForKid(c, userId, dow));
+      const completedOnDay = new Set(
+        allCompletions.filter((c) => c.date === date).map((c) => c.choreId),
+      );
+      return {
+        date,
+        total: dayChores.length,
+        completed: dayChores.filter((c) => completedOnDay.has(c._id)).length,
+      };
+    });
+  },
+});
+
 // weekDates: [Mon, Tue, Wed, Thu, Fri] as YYYY-MM-DD strings for the current week
 export const getWeeklyAllowanceStatus = query({
   args: {
