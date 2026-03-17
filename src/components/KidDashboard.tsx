@@ -84,9 +84,7 @@ function WeeklyProgressBar({
         <p className="text-sm text-neutral-800">{clockLabel}</p>
         <div className="flex items-center gap-2">
           <p className="text-sm text-neutral-600">{statusLabel}</p>
-          <p className="text-sm font-semibold text-[oklch(58%_0.031_107.3)]">
-            {weeklyPct}%
-          </p>
+          <p className="text-sm font-semibold text-olive-500">{weeklyPct}%</p>
         </div>
       </div>
       <div className="flex gap-2">
@@ -98,15 +96,15 @@ function WeeklyProgressBar({
           return (
             <div
               key={d.date}
-              className={`flex-1 h-[15px] rounded-full overflow-hidden ${
+              className={`flex-1 h-3.75 rounded-full overflow-hidden ${
                 isNoChores
-                  ? "outline outline-1 outline-neutral-500/50"
+                  ? "outline outline-neutral-500/50"
                   : "bg-neutral-500/50"
               }`}
             >
               {!isNoChores && !isFuture && fillPct > 0 && (
                 <motion.div
-                  className="h-full bg-[oklch(58%_0.031_107.3)]"
+                  className="h-full bg-olive-500"
                   initial={{ width: 0 }}
                   animate={{ width: `${fillPct}%` }}
                   transition={{ type: "spring", stiffness: 200, damping: 24 }}
