@@ -128,8 +128,9 @@ export const getWeeklyProgress = query({
   args: {
     userId: v.id("users"),
     weekDates: v.array(v.string()), // [Mon, Tue, Wed, Thu, Fri]
+    today: v.string(),
   },
-  handler: async (ctx, { userId, weekDates }) => {
+  handler: async (ctx, { userId, weekDates, today }) => {
     const weekDow = [1, 2, 3, 4, 5]; // Mon=1 … Fri=5
 
     const allActive = await ctx.db
@@ -156,10 +157,20 @@ export const getWeeklyProgress = query({
       const completedOnDay = new Set(
         allCompletions.filter((c) => c.date === date).map((c) => c.choreId),
       );
+      // For past days, floating chores that weren't completed that day are excluded
+      // from the total — snoozing a floating chore doesn't penalize the past day.
+      const isPastDay = date < today;
+      const countableChores = isPastDay
+        ? dayChores.filter(
+            (c) =>
+              (c.scheduleType ?? "floating") !== "floating" ||
+              completedOnDay.has(c._id),
+          )
+        : dayChores;
       return {
         date,
-        total: dayChores.length,
-        completed: dayChores.filter((c) => completedOnDay.has(c._id)).length,
+        total: countableChores.length,
+        completed: countableChores.filter((c) => completedOnDay.has(c._id)).length,
       };
     });
   },

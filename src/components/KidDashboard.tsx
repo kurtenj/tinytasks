@@ -295,6 +295,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const weeklyProgress = useQuery(api.chores.getWeeklyProgress, {
     userId,
     weekDates,
+    today,
   });
 
   const completedIds = new Set(completions?.map((c) => c.choreId) ?? []);
@@ -425,7 +426,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                     }
                     onCycle={remaining.length > 1 ? handleCycle : undefined}
                     onSnooze={
-                      frontChore.scheduleType !== "repeating"
+                      frontChore.scheduleType !== "repeating" && todayDow !== 5
                         ? () => handleSnooze(frontChore._id)
                         : undefined
                     }
