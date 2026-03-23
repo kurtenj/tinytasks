@@ -1,6 +1,6 @@
 # Tiny Tasks
 
-A family chores PWA for kids and parents. Kids swipe through daily chores, earn points, and unlock a treasure chest with randomized rewards. Parents manage chores, rewards, and track progress from an admin dashboard.
+A family chores PWA for kids and parents. Kids swipe through daily chores and track weekly progress toward an allowance. Parents manage chores and kids from an admin dashboard.
 
 ## Stack
 
@@ -8,7 +8,6 @@ A family chores PWA for kids and parents. Kids swipe through daily chores, earn 
 - **Convex** — real-time reactive backend + database
 - **Tailwind CSS v4** — styling
 - **Framer Motion** — animations
-- **canvas-confetti** — celebration effects
 
 ## Getting Started
 

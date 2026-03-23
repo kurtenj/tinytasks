@@ -3,14 +3,13 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-A family chores PWA for kids and parents. Kids complete daily chores, earn treasure chest rewards, and track streaks/points.
+A family chores PWA for kids and parents. Kids complete daily chores and track weekly progress toward an allowance.
 
 ## Tech Stack
 - **Next.js 15** (App Router, TypeScript, React Compiler enabled)
 - **Convex** — real-time reactive database + backend functions
 - **Tailwind CSS v4** (PostCSS integration, no separate tailwind.config)
 - **Framer Motion** — animations
-- **canvas-confetti** — celebration effects
 - **Google Fonts**: Knewave (headings, `font-knewave`), Funnel Display (`font-funnel`)
 
 ## Commands
@@ -31,23 +30,28 @@ Both `npm run dev` and `npx convex dev` must run simultaneously during developme
 `page.tsx` → `UserSelector` → `KidDashboard` or `AdminDashboard`. All data fetching uses Convex reactive queries (`useQuery`) and mutations (`useMutation`). No API routes except `GET /api/chore-images` which reads `public/chores/` at runtime.
 
 ### Convex Backend (`/convex`)
-Schema tables: `users`, `chores`, `completions`, `rewards`, `treasureOpens`, `settings`.
+Schema tables: `users`, `chores`, `completions`, `snoozed`, `settings`.
 
 Key relationships:
 - `completions` indexed by `(userId, date)` — date is always passed from the **client** as `new Date().toLocaleDateString("en-CA")` to avoid UTC timezone mismatch
+- `snoozed` indexed by `(userId, date)` and `(date)` — same date convention
 - `chores.assignedTo` — optional array of user IDs; if absent, chore shows for all kids
 - `chores.scheduleType`: `"floating"` (shows every weekday) or `"repeating"` (filtered by `daysOfWeek`)
 - `todayDow` (day-of-week 0–6) is always passed from the client for the same timezone reason
 - Chores never show on weekends (dow 0 or 6) — enforced in `listForKid` and `getKidsSummary`
+- `settings` is a key-value store; known keys: `"adminPin"`, `"allowanceAmount"`
 
 ### Key Business Rules
-- Treasure chest unlocks when `remaining.length === 0 && completed.length > 0` — all visible chores handled (completed or snoozed) with at least one actually completed
-- Snoozed ("do later") chores are stored in `localStorage` keyed as `snoozed-${userId}-${today}` — day-scoped, resets automatically each day; floating chores only
+- Snoozed ("do later") chores are stored server-side in the `snoozed` table (`userId`, `choreId`, `date`) — synced across all devices in real-time; day-scoped; floating chores only (not repeating, not on Friday)
 - Progress bar reflects `completed / (completed + remaining)` — snoozed chores are excluded from both numerator and denominator
-- Each kid can open the chest once per day (`treasureOpens` table)
-- Rewards weighted by rarity: common (5×), rare (3×), epic (2×)
-- `level = floor(points / 100) + 1`
+- Allowance status (`getWeeklyAllowanceStatus`): returns `"earned"` | `"lost"` | `"on_track"`. Scheduled (repeating) chores must be done on their assigned day; floating chores must be done at least once during the week. Missing a required day = `"lost"` immediately.
 - Week resets Monday; chores pushed past Friday disappear over the weekend and reappear fresh on Monday
+- `complete` and `snoozeChore` mutations are idempotent (check for existing record before inserting)
+
+### Time Helpers (`src/lib/time.ts`)
+- `getToday()` — returns `new Date().toLocaleDateString("en-CA")` (YYYY-MM-DD, client timezone). Use this everywhere a date string is needed.
+- `useLiveClock()` — formatted day + time label, updates every 10s
+- `useChoreCountdown(scheduleType)` — countdown to Friday 23:59 (floating) or end of day (repeating), updates every 60s
 
 ### Chore Card Colors
 Fallback chain: `chore.cardColor` → `getPresetByFile(chore.imageUrl)?.color` → `DEFAULT_CARD_COLOR`. `cardColor` is pixel-sampled via Canvas API in `AddChoreDialog` when an image is selected. Presets in `src/lib/chorePresets.ts`.
@@ -57,14 +61,14 @@ Images live in `public/chores/*.png`. The API route reads this directory dynamic
 
 ### Frontend Patterns
 - **KidDashboard card deck**: swipeable stack (max 3 visible). `useDragControls` + imperative `animate()` — card flies off first, Convex mutation fires after ~210ms to prevent spring-back. Double-tap detected via `onPointerDown` timestamp diff (< 350ms). Single-card decks spring back on swipe instead of cycling.
-- **KidDashboard layout**: `bg-stone-950` header slides in from top; `bg-neutral-100` page background. When chores remain, an `absolute h-[479px]` dark background extends behind the card deck. When no chores remain the absolute bg is hidden and the header shrinks to natural height.
-- **Reward button**: `fixed bottom-0` — always visible once chest is unlocked, slides in from bottom.
-- **Color scheme**: Black & white / neutral only. `bg-stone-950` header/dark, `bg-neutral-100` page background, `bg-white` cards with `border-4 border-stone-950 shadow-[5px_5px_0px_#0c0c09]`. Consistent across KidDashboard, UserSelector, AdminDashboard. No olive, amber, or other saturated colors.
+- **KidDashboard layout**: `bg-olive-200` header; `bg-white` page background. When chores remain, an absolute olive background extends behind the card deck. When no chores remain, the absolute bg is hidden and the header shrinks to natural height.
+- **Color scheme**: Header/accents use `bg-olive-200` / `text-olive-500`. Cards are `bg-white` with `border border-neutral-600 shadow-lg`. Page background is `bg-white`. Consistent across KidDashboard, UserSelector, AdminDashboard.
 - **Admin**: PIN stored in `settings` table under key `"adminPin"`. Single "Parents" button (uses `admins[0]`). `PinPad` has no `adminName` — all admins share the same PIN.
 - **Animations**: entry springs use `stiffness: 400, damping: 28` throughout. Header slides from `y: -24`, bottom elements from `y: 24`.
 - `AdminDashboard` uses Lucide icons throughout. `ChoreAvatar` renders image thumbnail or dynamic Lucide icon by name.
+- `src/app/preview/page.tsx` — interactive animation/layout preview for dev use only.
 
 ## Deployment
-- Frontend: Vercel (`vercel deploy`)
+- Frontend: Vercel (git-based deploy, set `NEXT_PUBLIC_CONVEX_URL` in dashboard)
 - Backend: Convex cloud (`npx convex deploy`)
 - Required env var: `NEXT_PUBLIC_CONVEX_URL` in `.env.local`

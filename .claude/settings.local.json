@@ -23,7 +23,10 @@
       "Read(//c/Users/Jonathan/.claude/skills/**)",
       "Bash(ls -la public/*.png)",
       "Bash(npx convex:*)",
-      "Bash(grep -r snooze C:UsersJonathanWorkspacetinytasks --include=*.ts --include=*.tsx --include=*.js --include=*.jsx)"
+      "Bash(grep -r snooze C:UsersJonathanWorkspacetinytasks --include=*.ts --include=*.tsx --include=*.js --include=*.jsx)",
+      "Bash(wc -l /c/Users/Jonathan/Workspace/tinytasks/src/components/*.tsx)",
+      "Bash(grep -E \"^export \\(const|function|interface|type\\)\" /c/Users/Jonathan/Workspace/tinytasks/src/components/*.tsx)",
+      "Bash(grep -E \"\\\\.ts$\")"
     ]
   }
 }
