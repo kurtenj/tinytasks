@@ -34,6 +34,13 @@ export default defineSchema({
     .index("by_user_date", ["userId", "date"])
     .index("by_date", ["date"])
     .index("by_chore_date", ["choreId", "date"]),
+  snoozed: defineTable({
+    userId: v.id("users"),
+    choreId: v.id("chores"),
+    date: v.string(), // ISO date string YYYY-MM-DD
+  })
+    .index("by_user_date", ["userId", "date"])
+    .index("by_date", ["date"]),
   settings: defineTable({
     key: v.string(),
     value: v.string(),

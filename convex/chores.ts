@@ -103,23 +103,55 @@ export const getKidsSummary = query({
       .query("chores")
       .filter((q) => q.eq(q.field("isActive"), true))
       .collect();
+    if (isWeekend(todayDow)) {
+      return kids.map((kid) => ({ userId: kid._id, remaining: 0 }));
+    }
+
     const todayCompletions = await ctx.db
       .query("completions")
       .withIndex("by_date", (q) => q.eq("date", today))
       .collect();
-
-    if (isWeekend(todayDow)) {
-      return kids.map((kid) => ({ userId: kid._id, remaining: 0 }));
-    }
+    const todaySnoozed = await ctx.db
+      .query("snoozed")
+      .withIndex("by_date", (q) => q.eq("date", today))
+      .collect();
 
     return kids.map((kid) => {
       const kidChores = allActive.filter((chore) => isChoreForKid(chore, kid._id, todayDow));
       const completedIds = new Set(
         todayCompletions.filter((c) => c.userId === kid._id).map((c) => c.choreId)
       );
-      const remaining = kidChores.filter((c) => !completedIds.has(c._id)).length;
+      const snoozedIds = new Set(
+        todaySnoozed.filter((s) => s.userId === kid._id).map((s) => s.choreId)
+      );
+      const remaining = kidChores.filter((c) => !completedIds.has(c._id) && !snoozedIds.has(c._id)).length;
       return { userId: kid._id, remaining };
     });
+  },
+});
+
+export const getSnoozedForUser = query({
+  args: { userId: v.id("users"), date: v.string() },
+  handler: async (ctx, { userId, date }) => {
+    const rows = await ctx.db
+      .query("snoozed")
+      .withIndex("by_user_date", (q) => q.eq("userId", userId).eq("date", date))
+      .collect();
+    return rows.map((r) => r.choreId);
+  },
+});
+
+export const snoozeChore = mutation({
+  args: { userId: v.id("users"), choreId: v.id("chores"), date: v.string() },
+  handler: async (ctx, { userId, choreId, date }) => {
+    const existing = await ctx.db
+      .query("snoozed")
+      .withIndex("by_user_date", (q) => q.eq("userId", userId).eq("date", date))
+      .filter((q) => q.eq(q.field("choreId"), choreId))
+      .first();
+    if (!existing) {
+      await ctx.db.insert("snoozed", { userId, choreId, date });
+    }
   },
 });
 

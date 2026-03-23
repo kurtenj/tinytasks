@@ -255,15 +255,9 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const clockLabel = useLiveClock();
 
   const today = getToday();
-  const snoozeKey = `snoozed-${userId}-${today}`;
-  const [snoozedIds, setSnoozedIds] = useState<Set<string>>(() => {
-    try {
-      const raw = localStorage.getItem(`snoozed-${userId}-${today}`);
-      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
+  const snoozedChoreIds = useQuery(api.chores.getSnoozedForUser, { userId, date: today });
+  const snooze = useMutation(api.chores.snoozeChore);
+  const snoozedIds = new Set(snoozedChoreIds ?? []);
 
   const todayDow = new Date().getDay();
   const isWeekend = todayDow === 0 || todayDow === 6;
@@ -308,15 +302,8 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const todaySnoozedCount =
     chores?.filter((c) => snoozedIds.has(c._id)).length ?? 0;
 
-  const handleSnooze = (choreId: string) => {
-    setSnoozedIds((prev) => {
-      const next = new Set(prev);
-      next.add(choreId);
-      try {
-        localStorage.setItem(snoozeKey, JSON.stringify([...next]));
-      } catch {}
-      return next;
-    });
+  const handleSnooze = (choreId: Id<"chores">) => {
+    snooze({ userId, choreId, date: today });
     setFrontOffset(0);
   };
 
@@ -338,7 +325,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     });
   };
 
-  if (!user || !chores) {
+  if (!user || !chores || snoozedChoreIds === undefined) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-stone-400 animate-pulse text-2xl">✓</div>

@@ -22,7 +22,8 @@
       "Read(//c/Users/Jonathan/.agents/skills/emil-design-eng/**)",
       "Read(//c/Users/Jonathan/.claude/skills/**)",
       "Bash(ls -la public/*.png)",
-      "Bash(npx convex:*)"
+      "Bash(npx convex:*)",
+      "Bash(grep -r snooze C:UsersJonathanWorkspacetinytasks --include=*.ts --include=*.tsx --include=*.js --include=*.jsx)"
     ]
   }
 }
