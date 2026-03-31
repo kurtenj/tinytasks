@@ -16,6 +16,8 @@ import type { Doc, Id } from "../../convex/_generated/dataModel";
 import * as LucideIcons from "lucide-react";
 import { useLiveClock, getToday, useChoreCountdown } from "@/lib/time";
 
+// ── ChoreIcon ─────────────────────────────────────────────────────────────────
+
 function ChoreIcon({
   iconName,
   className,
@@ -33,12 +35,7 @@ function ChoreIcon({
   return <Icon className={className} />;
 }
 
-interface KidDashboardProps {
-  userId: Id<"users">;
-  onSwitchUser: () => void;
-}
-
-// ── Weekly progress bar ───────────────────────────────────────────────────────
+// ── WeeklyProgressBar ─────────────────────────────────────────────────────────
 
 interface WeeklyProgressBarProps {
   days: Array<{ date: string; total: number; completed: number }> | undefined;
@@ -81,10 +78,10 @@ function WeeklyProgressBar({
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-neutral-800">{clockLabel}</p>
+        <p className="text-sm text-neutral-400">{clockLabel}</p>
         <div className="flex items-center gap-2">
-          <p className="text-sm text-neutral-600">{statusLabel}</p>
-          <p className="text-sm font-semibold text-neutral-500">{weeklyPct}%</p>
+          <p className="text-sm text-neutral-400">{statusLabel}</p>
+          <p className="text-sm font-semibold text-neutral-900">{weeklyPct}%</p>
         </div>
       </div>
       <div className="flex gap-2">
@@ -98,13 +95,13 @@ function WeeklyProgressBar({
               key={d.date}
               className={`flex-1 h-3.75 rounded-full overflow-hidden ${
                 isNoChores
-                  ? "outline outline-neutral-500/50"
-                  : "bg-neutral-500/50"
+                  ? "outline outline-neutral-900/15"
+                  : "bg-neutral-900/15"
               }`}
             >
               {!isNoChores && !isFuture && fillPct > 0 && (
                 <motion.div
-                  className="h-full bg-neutral-500"
+                  className="h-full bg-neutral-900"
                   initial={{ width: 0 }}
                   animate={{ width: `${fillPct}%` }}
                   transition={{ type: "spring", stiffness: 200, damping: 24 }}
@@ -160,7 +157,7 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
     if (now - lastPointerDownRef.current < 350) {
       lastPointerDownRef.current = 0;
       doComplete();
-      return; // skip drag start on double tap
+      return;
     }
     lastPointerDownRef.current = now;
     dragControls.start(e);
@@ -183,11 +180,11 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
           animate(x, 0, { type: "spring", stiffness: 320, damping: 22 });
         }
       }}
-      initial={{ scale: 0.93, opacity: 1, y: -16 }}
-      animate={{ scale: 1, opacity: 1, y: 0 }}
+      initial={{ scale: 0.93, y: -16 }}
+      animate={{ scale: 1, y: 0 }}
       exit={{ opacity: 0, transition: { duration: 0 } }}
       transition={{ type: "spring", stiffness: 480, damping: 34 }}
-      className="absolute inset-0 rounded-2xl border border-neutral-600 shadow-lg overflow-hidden select-none touch-none bg-white"
+      className="absolute inset-0 rounded-2xl shadow-lg overflow-hidden select-none touch-none bg-white"
       onPointerDown={handlePointerDown}
     >
       <motion.div
@@ -196,7 +193,6 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.18, delay: 0.06 }}
       >
-        {/* Illustration — fills upper portion of card, above bottom content */}
         <div className="absolute inset-x-0 top-0 bottom-35 pointer-events-none">
           {chore.imageUrl ? (
             <div className="relative w-full h-full">
@@ -216,7 +212,6 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
           ) : null}
         </div>
 
-        {/* Title + description + buttons — bottom of card */}
         <div className="absolute bottom-0 inset-x-0 px-4 pb-4 flex flex-col gap-3">
           <div className="px-2 pointer-events-none">
             <p className="text-neutral-800 text-xl font-medium leading-tight mb-1">
@@ -257,31 +252,24 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
 
 // ── KidDashboard ──────────────────────────────────────────────────────────────
 
+interface KidDashboardProps {
+  userId: Id<"users">;
+  onSwitchUser: () => void;
+}
+
 export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const [frontOffset, setFrontOffset] = useState(0);
   const clockLabel = useLiveClock();
-
   const today = getToday();
-  const snoozedChoreIds = useQuery(api.chores.getSnoozedForUser, {
-    userId,
-    date: today,
-  });
-  const snooze = useMutation(api.chores.snoozeChore);
-  const snoozedIds = new Set(snoozedChoreIds ?? []);
-
   const todayDow = new Date().getDay();
   const isWeekend = todayDow === 0 || todayDow === 6;
 
-  const weekDates = (() => {
-    const now = new Date();
-    const dow = now.getDay();
-    const mondayOffset = dow === 0 ? -6 : 1 - dow;
-    return [0, 1, 2, 3, 4].map((i) => {
-      const d = new Date(now);
-      d.setDate(now.getDate() + mondayOffset + i);
-      return d.toLocaleDateString("en-CA");
-    });
-  })();
+  const mondayOffset = todayDow === 0 ? -6 : 1 - todayDow;
+  const weekDates = [0, 1, 2, 3, 4].map((i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + mondayOffset + i);
+    return d.toLocaleDateString("en-CA");
+  });
 
   const user = useQuery(api.users.get, { id: userId });
   const chores = useQuery(api.chores.listForKid, { userId, todayDow });
@@ -289,7 +277,10 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     userId,
     today,
   });
-  const complete = useMutation(api.completions.complete);
+  const snoozedChoreIds = useQuery(api.chores.getSnoozedForUser, {
+    userId,
+    date: today,
+  });
   const allowanceStatus = useQuery(api.chores.getWeeklyAllowanceStatus, {
     userId,
     today,
@@ -301,29 +292,23 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     weekDates,
     today,
   });
+  const complete = useMutation(api.completions.complete);
+  const snooze = useMutation(api.chores.snoozeChore);
 
   const completedIds = new Set(completions?.map((c) => c.choreId) ?? []);
-
+  const snoozedIds = new Set(snoozedChoreIds ?? []);
   const remaining =
     chores?.filter((c) => !completedIds.has(c._id) && !snoozedIds.has(c._id)) ??
     [];
   const completed = chores?.filter((c) => completedIds.has(c._id)) ?? [];
-
   const todaySnoozedCount =
     chores?.filter((c) => snoozedIds.has(c._id)).length ?? 0;
 
-  const handleSnooze = (choreId: Id<"chores">) => {
-    snooze({ userId, choreId, date: today });
-    setFrontOffset(0);
-  };
-
-  // Deck cycles through remaining chores; frontOffset wraps around
-  const safeOffset = remaining.length > 0 ? frontOffset % remaining.length : 0;
-  const deckChores = Array.from(
+  const offset = remaining.length > 0 ? frontOffset % remaining.length : 0;
+  const [frontChore, midChore, backChore] = Array.from(
     { length: Math.min(3, remaining.length) },
-    (_, i) => remaining[(safeOffset + i) % remaining.length],
+    (_, i) => remaining[(offset + i) % remaining.length],
   );
-  const [frontChore, midChore, backChore] = deckChores;
 
   const handleCycle = (direction: 1 | -1) => {
     setFrontOffset((o) => {
@@ -335,6 +320,11 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
     });
   };
 
+  const handleSnooze = (choreId: Id<"chores">) => {
+    snooze({ userId, choreId, date: today });
+    setFrontOffset(0);
+  };
+
   if (!user || !chores || snoozedChoreIds === undefined) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -344,8 +334,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   }
 
   return (
-    <div className="relative min-h-screen bg-neutral-300 font-google-sans flex flex-col">
-      {/* ── Header ── */}
+    <div className="relative min-h-screen bg-neutral-200 font-google-sans flex flex-col">
       <motion.div
         initial={{ y: -24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -353,17 +342,14 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
         className="relative px-4 pt-4 pb-5"
       >
         <div className="max-w-lg mx-auto space-y-4">
-          {/* Back */}
-          <button
-            onClick={onSwitchUser}
-            className="active:scale-[0.97] transition-transform"
-          >
-            <ArrowLeft className="w-5 h-5 text-neutral-800" />
-          </button>
-
-          {/* Avatar + Name */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-neutral-500/25 shrink-0 overflow-hidden flex items-center justify-center">
+            <button
+              onClick={onSwitchUser}
+              className="active:scale-[0.97] transition-transform"
+            >
+              <ArrowLeft className="w-5 h-5 text-neutral-800" />
+            </button>
+            <div className="w-10 h-10 rounded-full bg-white-500/25 shrink-0 overflow-hidden flex items-center justify-center">
               {user.avatar && (
                 <Image
                   src={user.avatar}
@@ -374,12 +360,10 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
                 />
               )}
             </div>
-            <p className="text-3xl leading-10 font-google-sans text-neutral-800">
+            <p className="text-2xl font-semibold leading-10 font-google-sans text-neutral-800">
               {user.name}
             </p>
           </div>
-
-          {/* Weekly progress */}
           <WeeklyProgressBar
             days={weeklyProgress}
             today={today}
@@ -390,21 +374,19 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
         </div>
       </motion.div>
 
-      {/* ── Body ── */}
       <div className="relative max-w-lg mx-auto flex flex-col flex-1 w-full">
-        {/* Card deck */}
         {remaining.length > 0 && (
           <div className="px-4 pt-8">
             <div className="relative h-105">
               {backChore && (
                 <div
-                  className="absolute -top-8 rounded-2xl border border-neutral-600 shadow-lg bg-white"
+                  className="absolute top-8 rounded-2xl shadow-lg bg-white"
                   style={{ insetInline: "2rem", height: 420 }}
                 />
               )}
               {midChore && (
                 <div
-                  className="absolute -top-4 rounded-2xl border border-neutral-600 shadow-lg bg-white"
+                  className="absolute top-4 rounded-2xl shadow-lg bg-white"
                   style={{ insetInline: "1rem", height: 420 }}
                 />
               )}
@@ -429,7 +411,6 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
           </div>
         )}
 
-        {/* Empty state — centered between header and completed list */}
         {remaining.length === 0 && (isWeekend || chores.length > 0) && (
           <div className="flex-1 flex items-center justify-center">
             <p className="text-xl font-regular text-neutral-400">
@@ -440,7 +421,6 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
           </div>
         )}
 
-        {/* Completed checklist — pushed to bottom */}
         {completed.length > 0 && (
           <div className="mt-auto px-4 pt-6 pb-8">
             <p className="text-sm font-medium text-neutral-400 mb-1 pointer-events-none">
