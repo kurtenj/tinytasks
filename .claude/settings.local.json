@@ -26,7 +26,11 @@
       "Bash(grep -r snooze C:UsersJonathanWorkspacetinytasks --include=*.ts --include=*.tsx --include=*.js --include=*.jsx)",
       "Bash(wc -l /c/Users/Jonathan/Workspace/tinytasks/src/components/*.tsx)",
       "Bash(grep -E \"^export \\(const|function|interface|type\\)\" /c/Users/Jonathan/Workspace/tinytasks/src/components/*.tsx)",
-      "Bash(grep -E \"\\\\.ts$\")"
+      "Bash(grep -E \"\\\\.ts$\")",
+      "Bash(find /c/Users/Jonathan/Workspace/tinytasks/node_modules/tw-animate-css -name *.css -exec head -3 {})",
+      "Bash(2)",
+      "WebFetch(domain:x.com)",
+      "WebFetch(domain:socket.dev)"
     ]
   }
 }
