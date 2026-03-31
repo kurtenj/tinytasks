@@ -84,7 +84,7 @@ function WeeklyProgressBar({
         <p className="text-sm text-neutral-800">{clockLabel}</p>
         <div className="flex items-center gap-2">
           <p className="text-sm text-neutral-600">{statusLabel}</p>
-          <p className="text-sm font-semibold text-olive-500">{weeklyPct}%</p>
+          <p className="text-sm font-semibold text-neutral-500">{weeklyPct}%</p>
         </div>
       </div>
       <div className="flex gap-2">
@@ -104,7 +104,7 @@ function WeeklyProgressBar({
             >
               {!isNoChores && !isFuture && fillPct > 0 && (
                 <motion.div
-                  className="h-full bg-olive-500"
+                  className="h-full bg-neutral-500"
                   initial={{ width: 0 }}
                   animate={{ width: `${fillPct}%` }}
                   transition={{ type: "spring", stiffness: 200, damping: 24 }}
@@ -130,13 +130,20 @@ interface ChoreCardProps {
 function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
   const countdown = useChoreCountdown(chore.scheduleType ?? "floating");
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-250, 0, 250], [-18, 0, 18]);
+  const dragRotate = useTransform(x, [-250, 0, 250], [-18, 0, 18]);
+  const spinRotate = useMotionValue(0);
+  const rotate = useTransform(
+    [dragRotate, spinRotate],
+    ([drag, spin]) => (drag as number) + (spin as number),
+  );
   const dragControls = useDragControls();
   const lastPointerDownRef = useRef<number>(0);
 
   const doComplete = () => {
-    animate(x, -520, { ease: [0.4, 0, 0.9, 1], duration: 0.28 });
-    setTimeout(onComplete, 210);
+    const easing: [number, number, number, number] = [0.3, 0, 0.9, 1];
+    animate(x, 480, { ease: easing, duration: 0.44 });
+    animate(spinRotate, 210, { ease: easing, duration: 0.44 });
+    setTimeout(onComplete, 370);
   };
 
   const doCycle = (direction: 1 | -1) => {
@@ -255,7 +262,10 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   const clockLabel = useLiveClock();
 
   const today = getToday();
-  const snoozedChoreIds = useQuery(api.chores.getSnoozedForUser, { userId, date: today });
+  const snoozedChoreIds = useQuery(api.chores.getSnoozedForUser, {
+    userId,
+    date: today,
+  });
   const snooze = useMutation(api.chores.snoozeChore);
   const snoozedIds = new Set(snoozedChoreIds ?? []);
 
@@ -334,18 +344,13 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   }
 
   return (
-    <div className="relative min-h-screen bg-white font-google-sans flex flex-col">
-      {/* Dark background extension — only when card deck is visible */}
-      {remaining.length > 0 && (
-        <div className="absolute top-0 inset-x-0 h-119.75 bg-olive-200 rounded-b-3xl" />
-      )}
-
+    <div className="relative min-h-screen bg-neutral-300 font-google-sans flex flex-col">
       {/* ── Header ── */}
       <motion.div
         initial={{ y: -24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 28 }}
-        className="relative bg-olive-200 rounded-b-2xl px-4 pt-4 pb-5"
+        className="relative px-4 pt-4 pb-5"
       >
         <div className="max-w-lg mx-auto space-y-4">
           {/* Back */}
