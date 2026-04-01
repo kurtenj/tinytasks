@@ -44,7 +44,7 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
   };
 
   return (
-    <div className="min-h-svh bg-neutral-50 font-google-sans flex flex-col items-center pb-4 px-4">
+    <div className="min-h-svh bg-neutral-100 font-google-sans flex flex-col items-center pb-4 px-4">
       {/* Logo + clock */}
       <div className="flex flex-col items-center gap-12 py-6 w-full">
         <div className="pt-6">

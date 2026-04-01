@@ -330,14 +330,14 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
 
   if (!user || !chores || snoozedChoreIds === undefined) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-100 flex items-center justify-center">
         <div className="text-stone-400 animate-pulse text-2xl">✓</div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen bg-neutral-400/25 font-google-sans flex flex-col">
+    <div className="relative min-h-screen bg-neutral-100 font-google-sans flex flex-col">
       <motion.div
         initial={{ y: -24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

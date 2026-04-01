@@ -8,6 +8,7 @@ A family chores PWA for kids and parents. Kids swipe through daily chores and tr
 - **Convex** — real-time reactive backend + database
 - **Tailwind CSS v4** — styling
 - **Framer Motion** — animations
+- **Google Fonts** — Geist, Outfit
 
 ## Getting Started
 
@@ -49,12 +50,22 @@ Open [http://localhost:3000](http://localhost:3000). Both terminals need to stay
 npm run build      # Production build
 npm run lint       # ESLint
 npx convex deploy  # Deploy backend to Convex cloud
-vercel deploy      # Deploy frontend to Vercel
 ```
 
 ## Adding Chore Illustrations
 
 Drop `.png` files into `public/chores/`. They'll automatically appear in the illustration picker when creating or editing a chore — no code changes needed. The background color for each card is sampled from the image automatically.
+
+## PWA Assets
+
+Icons and splash assets live in `public/`:
+
+| File | Purpose |
+|------|---------|
+| `icon.png` | Browser favicon |
+| `icon-192.png` | PWA home screen icon (192×192) |
+| `icon-512.png` | PWA home screen icon (512×512) |
+| `apple-touch-icon.png` | iOS add-to-home-screen icon (180×180) |
 
 ## Deployment
 

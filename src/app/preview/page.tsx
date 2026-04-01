@@ -246,7 +246,7 @@ export default function PreviewPage() {
   const isAllDone = remaining.length === 0;
 
   return (
-    <div className="relative min-h-screen bg-white font-google-sans flex flex-col">
+    <div className="relative min-h-screen bg-neutral-100 font-google-sans flex flex-col">
       {/* Dev toolbar */}
       <div className="fixed top-2 right-2 z-50 flex gap-1.5 flex-wrap justify-end max-w-xs">
         <button

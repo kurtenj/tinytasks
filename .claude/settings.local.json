@@ -36,7 +36,8 @@
       "Bash(npm install:*)",
       "Bash(node -e \"const icons = require\\(''@hugeicons/core-free-icons''\\); const names = Object.keys\\(icons\\); console.log\\(names.length, ''icons''\\); const relevant = names.filter\\(n => /arrow|check|erase|info|load|trash|pencil|plus|repeat|shuffle|user|cancel|x|warning|alert|octagon/i.test\\(n\\)\\); console.log\\(relevant.sort\\(\\).join\\(''\\\\n''\\)\\);\")",
       "Bash(node -e \"const icons = require\\(''@hugeicons/core-free-icons/dist/cjs/index.js''\\); const names = Object.keys\\(icons\\); console.log\\(names.slice\\(0,5\\)\\); console.log\\(names.length\\);\")",
-      "Bash(sed 's/const //')"
+      "Bash(sed 's/const //')",
+      "Bash(grep -r olive C:UsersJonathanWorkspacetinytaskssrc --include=*.css -l)"
     ]
   }
 }

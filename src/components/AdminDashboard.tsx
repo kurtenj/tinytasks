@@ -68,7 +68,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   };
 
   return (
-    <div className="h-screen bg-neutral-50 font-google-sans flex flex-col overflow-hidden">
+    <div className="h-screen bg-neutral-100 font-google-sans flex flex-col overflow-hidden">
       {/* Header */}
       <motion.div
         initial={{ y: -24, opacity: 0 }}

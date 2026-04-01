@@ -10,7 +10,7 @@ A family chores PWA for kids and parents. Kids complete daily chores and track w
 - **Convex** — real-time reactive database + backend functions
 - **Tailwind CSS v4** (PostCSS integration, no separate tailwind.config)
 - **Framer Motion** — animations
-- **Google Fonts**: Knewave (headings, `font-knewave`), Funnel Display (`font-funnel`)
+- **Google Fonts**: Geist (`font-sans`), Outfit (`font-google-sans`)
 
 ## Commands
 
@@ -61,12 +61,17 @@ Images live in `public/chores/*.png`. The API route reads this directory dynamic
 
 ### Frontend Patterns
 - **KidDashboard card deck**: swipeable stack (max 3 visible). `useDragControls` + imperative `animate()` — card flies off first, Convex mutation fires after ~210ms to prevent spring-back. Double-tap detected via `onPointerDown` timestamp diff (< 350ms). Single-card decks spring back on swipe instead of cycling.
-- **KidDashboard layout**: `bg-olive-200` header; `bg-white` page background. When chores remain, an absolute olive background extends behind the card deck. When no chores remain, the absolute bg is hidden and the header shrinks to natural height.
-- **Color scheme**: Header/accents use `bg-olive-200` / `text-olive-500`. Cards are `bg-white` with `border border-neutral-600 shadow-lg`. Page background is `bg-white`. Consistent across KidDashboard, UserSelector, AdminDashboard.
+- **KidDashboard layout**: `bg-olive-200` header; `bg-neutral-100` page background. When chores remain, an absolute olive background extends behind the card deck. When no chores remain, the absolute bg is hidden and the header shrinks to natural height.
+- **Color scheme**: Header/accents use `bg-olive-200` / `text-olive-500`. Cards are `bg-white` with `border border-neutral-600 shadow-lg`. Page background is `bg-neutral-100` — consistent across KidDashboard, UserSelector, AdminDashboard. CSS `--background` is set to match.
 - **Admin**: PIN stored in `settings` table under key `"adminPin"`. Single "Parents" button (uses `admins[0]`). `PinPad` has no `adminName` — all admins share the same PIN.
 - **Animations**: entry springs use `stiffness: 400, damping: 28` throughout. Header slides from `y: -24`, bottom elements from `y: 24`.
 - `AdminDashboard` uses Lucide icons throughout. `ChoreAvatar` renders image thumbnail or dynamic Lucide icon by name.
 - `src/app/preview/page.tsx` — interactive animation/layout preview for dev use only.
+
+### PWA Configuration
+- **Manifest**: `public/manifest.json` — `theme_color` and `background_color` are `#f5f5f5` (neutral-100). Icons declared with separate `"any"` and `"maskable"` purpose entries for each size.
+- **Viewport**: `viewportFit: "cover"` in `layout.tsx` ensures content fills behind the iOS status bar. `statusBarStyle: "black-translucent"` makes the status bar transparent.
+- **Assets**: `public/icon.png` (favicon), `public/apple-touch-icon.png` (180×180 for iOS), `public/icon-192.png`, `public/icon-512.png`.
 
 ## Deployment
 - Frontend: Vercel (git-based deploy, set `NEXT_PUBLIC_CONVEX_URL` in dashboard)
