@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eraser } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { EraserIcon } from "@hugeicons/core-free-icons";
 
 interface PinPadProps {
   onSuccess: () => void;
@@ -134,7 +135,7 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
                   onClick={handleDelete}
                   className="h-11 flex items-center justify-center rounded-md text-stone-400 hover:bg-stone-200 active:bg-stone-300 active:scale-[0.97] transition-transform duration-150"
                 >
-                  <Eraser className="w-4 h-4" />
+                  <HugeiconsIcon icon={EraserIcon} size={16} />
                 </button>
               );
             }

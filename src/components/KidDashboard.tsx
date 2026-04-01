@@ -11,28 +11,30 @@ import {
   animate,
 } from "framer-motion";
 import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import * as LucideIcons from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import * as HugeiconsIcons from "@hugeicons/core-free-icons";
 import { useLiveClock, getToday, useChoreCountdown } from "@/lib/time";
+import { UserChip } from "@/components/UserChip";
 
 // ── ChoreIcon ─────────────────────────────────────────────────────────────────
 
 function ChoreIcon({
   iconName,
+  size,
   className,
 }: {
   iconName: string;
+  size?: number;
   className?: string;
 }) {
-  const Icon = (
-    LucideIcons as unknown as Record<
-      string,
-      React.ComponentType<{ className?: string }>
-    >
+  const iconData = (
+    HugeiconsIcons as unknown as Record<string, IconSvgElement>
   )[iconName];
-  if (!Icon) return null;
-  return <Icon className={className} />;
+  if (!iconData) return null;
+  return <HugeiconsIcon icon={iconData} size={size} className={className} />;
 }
 
 // ── WeeklyProgressBar ─────────────────────────────────────────────────────────
@@ -207,7 +209,8 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
           ) : chore.icon ? (
             <ChoreIcon
               iconName={chore.icon}
-              className="w-24 h-24 text-stone-950/40"
+              size={96}
+              className="text-stone-950/40"
             />
           ) : null}
         </div>
@@ -230,7 +233,7 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
             <button
               onPointerDown={(e) => e.stopPropagation()}
               onClick={doComplete}
-              className="flex-1 flex items-center justify-center rounded-md border border-neutral-300 py-3 text-sm font-medium text-neutral-800"
+              className="flex-1 flex items-center justify-center rounded-md border-2 border-emerald-500/25 bg-emerald-50 py-3 text-sm font-medium text-emerald-600"
             >
               Complete
             </button>
@@ -238,7 +241,7 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
               <button
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={onSnooze}
-                className="flex-1 flex items-center justify-center rounded-md border border-neutral-300 py-3 text-sm font-medium text-neutral-800"
+                className="flex-1 flex items-center justify-center rounded-md border-2 border-neutral-300/25 bg-neutral-50 py-3 text-sm font-medium text-neutral-600"
               >
                 Do later
               </button>
@@ -347,22 +350,14 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
               onClick={onSwitchUser}
               className="active:scale-[0.97] transition-transform"
             >
-              <ArrowLeft className="w-5 h-5 text-neutral-800" />
+              <HugeiconsIcon
+                icon={ArrowLeft01Icon}
+                size={24}
+                strokeWidth={2}
+                className="text-neutral-800"
+              />
             </button>
-            <div className="w-10 h-10 rounded-full bg-white-500/25 shrink-0 overflow-hidden flex items-center justify-center">
-              {user.avatar && (
-                <Image
-                  src={user.avatar}
-                  alt=""
-                  width={40}
-                  height={40}
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-            <p className="text-2xl font-semibold leading-10 font-google-sans text-neutral-800">
-              {user.name}
-            </p>
+            <UserChip user={user} />
           </div>
           <WeeklyProgressBar
             days={weeklyProgress}

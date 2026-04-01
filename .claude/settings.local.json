@@ -30,7 +30,13 @@
       "Bash(find /c/Users/Jonathan/Workspace/tinytasks/node_modules/tw-animate-css -name *.css -exec head -3 {})",
       "Bash(2)",
       "WebFetch(domain:x.com)",
-      "WebFetch(domain:socket.dev)"
+      "WebFetch(domain:socket.dev)",
+      "WebFetch(domain:hugeicons.com)",
+      "Bash(npm ls:*)",
+      "Bash(npm install:*)",
+      "Bash(node -e \"const icons = require\\(''@hugeicons/core-free-icons''\\); const names = Object.keys\\(icons\\); console.log\\(names.length, ''icons''\\); const relevant = names.filter\\(n => /arrow|check|erase|info|load|trash|pencil|plus|repeat|shuffle|user|cancel|x|warning|alert|octagon/i.test\\(n\\)\\); console.log\\(relevant.sort\\(\\).join\\(''\\\\n''\\)\\);\")",
+      "Bash(node -e \"const icons = require\\(''@hugeicons/core-free-icons/dist/cjs/index.js''\\); const names = Object.keys\\(icons\\); console.log\\(names.slice\\(0,5\\)\\); console.log\\(names.length\\);\")",
+      "Bash(sed 's/const //')"
     ]
   }
 }

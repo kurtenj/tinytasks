@@ -10,7 +10,8 @@ import {
   useAnimationFrame,
 } from "framer-motion";
 import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 
 // ── Mock data ──────────────────────────────────────────────────────────────────
 
@@ -279,7 +280,7 @@ export default function PreviewPage() {
       >
         <div className="max-w-lg mx-auto space-y-4">
           <button className="active:scale-[0.97] transition-transform">
-            <ArrowLeft className="w-5 h-5 text-neutral-800" />
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={20} className="text-neutral-800" />
           </button>
 
           <div className="flex items-center gap-3">

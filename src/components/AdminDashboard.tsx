@@ -5,16 +5,20 @@ import { api } from "../../convex/_generated/api";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
+import { HugeiconsIcon } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import {
-  Plus,
-  Trash2,
-  RotateCcw,
-  CheckSquare,
-  UserPlus,
-  Pencil,
-  ArrowLeft,
-} from "lucide-react";
-import * as LucideIcons from "lucide-react";
+  PlusSignIcon,
+  Delete01Icon,
+  RotateLeft01Icon,
+  CheckmarkSquare01Icon,
+  UserAdd01Icon,
+  PencilEdit01Icon,
+  ArrowLeft01Icon,
+  RepeatIcon,
+  ShuffleIcon,
+} from "@hugeicons/core-free-icons";
+import * as HugeiconsIcons from "@hugeicons/core-free-icons";
 import { DAY_ABBREVS } from "@/lib/chorePresets";
 import { getToday } from "@/lib/time";
 import { AddChoreDialog } from "@/components/AddChoreDialog";
@@ -22,8 +26,8 @@ import { AddChoreDialog } from "@/components/AddChoreDialog";
 type Tab = "chores" | "kids";
 
 const TABS = [
-  { id: "chores", icon: CheckSquare, label: "Chores" },
-  { id: "kids", icon: UserPlus, label: "Kids" },
+  { id: "chores", icon: CheckmarkSquare01Icon, label: "Chores" },
+  { id: "kids", icon: UserAdd01Icon, label: "Kids" },
 ] as const;
 
 interface AdminDashboardProps {
@@ -98,13 +102,13 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               onClick={onSwitchUser}
               className="active:scale-[0.97] transition-transform"
             >
-              <ArrowLeft className="w-5 h-5 text-neutral-800" />
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={20} className="text-neutral-800" />
             </button>
             <button
               onClick={() => resetDay({ today })}
               className="flex items-center gap-1.5 text-neutral-800/50 hover:text-neutral-800 text-sm py-1.5 px-3 rounded-lg hover:bg-neutral-800/10 transition-colors"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <HugeiconsIcon icon={RotateLeft01Icon} size={14} />
               Reset Day
             </button>
           </div>
@@ -125,7 +129,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                     : "text-neutral-700 hover:text-neutral-900"
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <HugeiconsIcon icon={Icon as IconSvgElement} size={16} />
                 <span className="hidden sm:inline">{label}</span>
               </button>
             ))}
@@ -145,25 +149,20 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                 onClick={() => setShowAddChore(true)}
                 className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2 px-3 rounded-xl hover:bg-stone-800 active:scale-[0.97] transition-transform duration-150"
               >
-                <Plus className="w-4 h-4" /> Add Chore
+                <HugeiconsIcon icon={PlusSignIcon} size={16} /> Add Chore
               </button>
             </div>
 
             {chores?.length === 0 ? (
               <div className="text-center py-12 text-stone-400">
-                <CheckSquare className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                <HugeiconsIcon icon={CheckmarkSquare01Icon} size={40} className="mx-auto mb-2 opacity-30" />
                 <p>No chores yet. Add some!</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 {chores?.map((chore) => {
-                  const LucideIcon = chore.icon
-                    ? (
-                        LucideIcons as unknown as Record<
-                          string,
-                          React.ComponentType<{ className?: string }>
-                        >
-                      )[chore.icon]
+                  const choreIconData = chore.icon
+                    ? (HugeiconsIcons as unknown as Record<string, IconSvgElement>)[chore.icon]
                     : undefined;
                   return (
                     <div
@@ -181,8 +180,8 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                             className="object-contain p-4"
                             sizes="200px"
                           />
-                        ) : LucideIcon ? (
-                          <LucideIcon className="w-14 h-14 text-stone-950/40" />
+                        ) : choreIconData ? (
+                          <HugeiconsIcon icon={choreIconData} size={56} className="text-stone-950/40" />
                         ) : null}
 
                         {/* Completed badge */}
@@ -206,7 +205,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                         <div className="flex items-center gap-1 flex-wrap">
                           {chore.scheduleType === "repeating" ? (
                             <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200 flex items-center gap-1">
-                              <LucideIcons.Repeat className="w-3 h-3" />
+                              <HugeiconsIcon icon={RepeatIcon} size={12} />
                               {chore.daysOfWeek && chore.daysOfWeek.length > 0
                                 ? chore.daysOfWeek
                                     .map((d) => DAY_ABBREVS[d])
@@ -215,7 +214,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                             </span>
                           ) : chore.scheduleType === "floating" ? (
                             <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200 flex items-center gap-1">
-                              <LucideIcons.Shuffle className="w-3 h-3" />{" "}
+                              <HugeiconsIcon icon={ShuffleIcon} size={12} />{" "}
                               flexible
                             </span>
                           ) : null}
@@ -295,7 +294,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                   <span>
                     {allowanceAmount ? `$${allowanceAmount}` : "Not set"}
                   </span>
-                  <Pencil className="w-3.5 h-3.5 opacity-40" />
+                  <HugeiconsIcon icon={PencilEdit01Icon} size={14} className="opacity-40" />
                 </button>
               )}
             </div>
@@ -313,7 +312,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                 disabled={!newKidName.trim()}
                 className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2.5 px-3 rounded-xl hover:bg-stone-800 active:scale-[0.97] disabled:opacity-50 transition-transform duration-150"
               >
-                <Plus className="w-4 h-4" /> Add
+                <HugeiconsIcon icon={PlusSignIcon} size={16} /> Add
               </button>
             </form>
 
@@ -334,7 +333,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <UserPlus className="w-4 h-4 text-stone-400" />
+                        <HugeiconsIcon icon={UserAdd01Icon} size={16} className="text-stone-400" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -372,13 +371,13 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                         }}
                         className="text-stone-300 hover:text-stone-700 p-1 transition-colors"
                       >
-                        <Pencil className="w-4 h-4" />
+                        <HugeiconsIcon icon={PencilEdit01Icon} size={16} />
                       </button>
                       <button
                         onClick={() => removeKid({ id: kid._id })}
                         className="text-stone-300 hover:text-red-500 p-1 transition-colors"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <HugeiconsIcon icon={Delete01Icon} size={16} />
                       </button>
                     </div>
                   </div>
@@ -416,7 +415,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               ))}
               {kids?.length === 0 && (
                 <div className="text-center py-12 text-stone-400">
-                  <UserPlus className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                  <HugeiconsIcon icon={UserAdd01Icon} size={40} className="mx-auto mb-2 opacity-30" />
                   <p>No kids yet. Add one above!</p>
                 </div>
               )}

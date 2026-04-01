@@ -5,7 +5,8 @@ import { api } from "../../convex/_generated/api";
 import NextImage from "next/image";
 import { motion } from "framer-motion";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { Trash2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Delete01Icon } from "@hugeicons/core-free-icons";
 import { getPresetByFile, DAY_ABBREVS } from "@/lib/chorePresets";
 
 function fileToLabel(filename: string): string {
@@ -310,7 +311,7 @@ export function AddChoreDialog({
                 }}
                 className="flex items-center gap-1.5 text-sm text-neutral-400 hover:text-red-500 transition-colors"
               >
-                <Trash2 className="w-4 h-4" /> Delete chore
+                <HugeiconsIcon icon={Delete01Icon} size={16} /> Delete chore
               </button>
             </div>
           )}
