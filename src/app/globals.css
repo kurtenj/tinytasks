@@ -133,6 +133,14 @@
   font-family: var(--font-google-sans), system-ui, sans-serif;
 }
 
+@utility pt-safe-4 {
+  padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+}
+
+@utility pt-safe-6 {
+  padding-top: calc(1.5rem + env(safe-area-inset-top, 0px));
+}
+
 @keyframes candystripe {
   from { background-position: 0 0; }
   to { background-position: 40px 0; }

@@ -74,7 +74,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
         initial={{ y: -24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 28 }}
-        className="relative px-4 pt-4 pb-5"
+        className="relative px-4 pt-safe-4 pb-5"
       >
         <div className="max-w-2xl mx-auto space-y-4">
           <div className="flex items-center gap-3">
