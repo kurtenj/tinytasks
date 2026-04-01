@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { EraserIcon } from "@hugeicons/core-free-icons";
+import { ArrowTurnBackwardIcon } from "@hugeicons/core-free-icons";
 
 interface PinPadProps {
   onSuccess: () => void;
@@ -101,8 +101,8 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
               key={i}
               className={`w-5 h-5 rounded-full border transition-transform duration-150 ${
                 i < display.length
-                  ? "bg-stone-800 border-stone-800 scale-110"
-                  : "bg-transparent border-stone-400"
+                  ? "bg-neutral-800 border-neutral-800 scale-110"
+                  : "bg-transparent border-neutral-400"
               }`}
             />
           ))}
@@ -133,9 +133,13 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
                 <button
                   key={i}
                   onClick={handleDelete}
-                  className="h-11 flex items-center justify-center rounded-md text-stone-400 hover:bg-stone-200 active:bg-stone-300 active:scale-[0.97] transition-transform duration-150"
+                  className="h-11 flex items-center justify-center rounded-md text-neutral-400 hover:bg-neutral-100 active:bg-neutral-300 active:scale-[0.97] transition-transform duration-150"
                 >
-                  <HugeiconsIcon icon={EraserIcon} size={16} />
+                  <HugeiconsIcon
+                    icon={ArrowTurnBackwardIcon}
+                    size={24}
+                    strokeWidth={2}
+                  />
                 </button>
               );
             }
@@ -143,7 +147,7 @@ export function PinPad({ onSuccess, onCancel }: PinPadProps) {
               <button
                 key={i}
                 onClick={() => handleDigit(k)}
-                className="h-11 text-base font-regular text-stone-950 rounded-md bg-stone-50 border border-stone-200 hover:bg-stone-100 active:bg-stone-800 active:text-white active:scale-[0.97] transition-transform duration-150"
+                className="h-11 text-base font-regular text-neutral-900 rounded-md bg-neutral-200 border border-neutral-200 hover:bg-neutral-300 active:bg-neutral-800 active:text-white active:scale-[0.97] transition-transform duration-150"
               >
                 {k}
               </button>

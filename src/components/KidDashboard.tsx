@@ -80,9 +80,9 @@ function WeeklyProgressBar({
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-neutral-400">{clockLabel}</p>
+        <p className="text-sm font-normal text-neutral-400">{clockLabel}</p>
         <div className="flex items-center gap-2">
-          <p className="text-sm text-neutral-400">{statusLabel}</p>
+          <p className="text-sm font-normal text-neutral-400">{statusLabel}</p>
           <p className="text-sm font-semibold text-neutral-900">{weeklyPct}%</p>
         </div>
       </div>
@@ -221,10 +221,10 @@ function ChoreCard({ chore, onComplete, onCycle, onSnooze }: ChoreCardProps) {
               {chore.title}
             </p>
             <div className="flex items-baseline justify-between gap-2">
-              <p className="text-neutral-500 text-sm font-medium">
+              <p className="text-neutral-400 text-sm">
                 {chore.description ?? ""}
               </p>
-              <span className="text-neutral-400 text-sm font-medium tabular-nums shrink-0">
+              <span className="text-neutral-400 text-sm tabular-nums shrink-0">
                 {countdown}
               </span>
             </div>
@@ -337,7 +337,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
   }
 
   return (
-    <div className="relative min-h-screen bg-neutral-200 font-google-sans flex flex-col">
+    <div className="relative min-h-screen bg-neutral-400/25 font-google-sans flex flex-col">
       <motion.div
         initial={{ y: -24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -353,7 +353,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
               <HugeiconsIcon
                 icon={ArrowLeft01Icon}
                 size={24}
-                strokeWidth={2}
+                strokeWidth={3}
                 className="text-neutral-800"
               />
             </button>
@@ -408,7 +408,7 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
 
         {remaining.length === 0 && (isWeekend || chores.length > 0) && (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-xl font-regular text-neutral-400">
+            <p className="text-xl text-neutral-500">
               {isWeekend
                 ? "No chores today, enjoy the weekend."
                 : "All chores done, good job!"}
@@ -418,18 +418,12 @@ export function KidDashboard({ userId, onSwitchUser }: KidDashboardProps) {
 
         {completed.length > 0 && (
           <div className="mt-auto px-4 pt-6 pb-8">
-            <p className="text-sm font-medium text-neutral-400 mb-1 pointer-events-none">
-              Completed
+            <p className="text-sm text-neutral-400 truncate pointer-events-none">
+              <span className="text-neutral-500 pr-1">Completed </span>
+              <span className="text-neutral-900">
+                {completed.map((c) => c.title).join(", ")}
+              </span>
             </p>
-            <div className="flex flex-col">
-              {completed.map((chore) => (
-                <div key={chore._id} className="flex items-center py-1">
-                  <span className="text-neutral-800 text-sm font-medium">
-                    {chore.title}
-                  </span>
-                </div>
-              ))}
-            </div>
           </div>
         )}
       </div>

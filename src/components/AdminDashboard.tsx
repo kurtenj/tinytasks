@@ -9,26 +9,23 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 import {
   PlusSignIcon,
-  Delete01Icon,
-  RotateLeft01Icon,
   CheckmarkSquare01Icon,
   UserAdd01Icon,
-  PencilEdit01Icon,
   ArrowLeft01Icon,
-  RepeatIcon,
-  ShuffleIcon,
+  PencilEdit01Icon,
 } from "@hugeicons/core-free-icons";
 import * as HugeiconsIcons from "@hugeicons/core-free-icons";
 import { DAY_ABBREVS } from "@/lib/chorePresets";
 import { getToday } from "@/lib/time";
 import { AddChoreDialog } from "@/components/AddChoreDialog";
+import { EditKidDialog } from "@/components/EditKidDialog";
 
 type Tab = "chores" | "kids";
 
-const TABS = [
-  { id: "chores", icon: CheckmarkSquare01Icon, label: "Chores" },
-  { id: "kids", icon: UserAdd01Icon, label: "Kids" },
-] as const;
+const TABS: { id: Tab; label: string }[] = [
+  { id: "chores", label: "Chores" },
+  { id: "kids", label: "Kids" },
+];
 
 interface AdminDashboardProps {
   userId: Id<"users">;
@@ -39,25 +36,20 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
   const [tab, setTab] = useState<Tab>("chores");
   const [showAddChore, setShowAddChore] = useState(false);
   const [editingChore, setEditingChore] = useState<Doc<"chores"> | null>(null);
+  const [editingKid, setEditingKid] = useState<Doc<"users"> | null>(null);
 
   // Kids state
   const [newKidName, setNewKidName] = useState("");
-  const [renamingKidId, setRenamingKidId] = useState<Id<"users"> | null>(null);
-  const [renameValue, setRenameValue] = useState("");
   const [allowanceInput, setAllowanceInput] = useState("");
   const [editingAllowance, setEditingAllowance] = useState(false);
 
   const today = getToday();
   const chores = useQuery(api.chores.listAll);
   const kids = useQuery(api.users.getKids);
-  const todayCompletions = useQuery(api.completions.getTodayAll, { today });
   const allowanceAmount = useQuery(api.settings.getAllowanceAmount);
 
   const resetDay = useMutation(api.completions.resetDay);
   const createUser = useMutation(api.users.create);
-  const renameKid = useMutation(api.users.rename);
-  const removeKid = useMutation(api.users.remove);
-  const setAvatar = useMutation(api.users.setAvatar);
   const setAllowanceAmount = useMutation(api.settings.setAllowanceAmount);
 
   const handleSaveAllowance = async (e: React.FormEvent) => {
@@ -68,10 +60,6 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
     setEditingAllowance(false);
   };
 
-  const completedChoreIds = new Set(
-    todayCompletions?.map((c) => c.choreId) ?? [],
-  );
-
   const handleAddKid = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newKidName.trim()) return;
@@ -79,65 +67,59 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
     setNewKidName("");
   };
 
-  const handleRenameKid = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!renameValue.trim() || !renamingKidId) return;
-    await renameKid({ id: renamingKidId, name: renameValue.trim() });
-    setRenamingKidId(null);
-  };
-
   return (
-    <div className="min-h-screen bg-white font-google-sans flex flex-col">
+    <div className="h-screen bg-neutral-50 font-google-sans flex flex-col overflow-hidden">
       {/* Header */}
       <motion.div
         initial={{ y: -24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 28 }}
-        className="bg-olive-200 rounded-b-4xl px-4 pt-4 pb-5"
+        className="relative px-4 pt-4 pb-5"
       >
         <div className="max-w-2xl mx-auto space-y-4">
-          {/* Back + reset */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <button
               onClick={onSwitchUser}
               className="active:scale-[0.97] transition-transform"
             >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={20} className="text-neutral-800" />
+              <HugeiconsIcon
+                icon={ArrowLeft01Icon}
+                size={24}
+                strokeWidth={3}
+                className="text-neutral-800"
+              />
             </button>
+            <span className="text-2xl font-semibold leading-10 font-google-sans text-neutral-900 flex-1">
+              Parents
+            </span>
             <button
               onClick={() => resetDay({ today })}
-              className="flex items-center gap-1.5 text-neutral-800/50 hover:text-neutral-800 text-sm py-1.5 px-3 rounded-lg hover:bg-neutral-800/10 transition-colors"
+              className="flex items-center gap-1.5 bg-neutral-200 text-neutral-500 text-sm py-1.5 px-3 rounded-lg hover:bg-neutral-300 transition-colors"
             >
-              <HugeiconsIcon icon={RotateLeft01Icon} size={14} />
               Reset Day
             </button>
           </div>
 
-          <h1 className="text-3xl font-google-sans text-neutral-800">
-            Parents
-          </h1>
-
           {/* Tabs */}
-          <div className="flex gap-1 bg-neutral-800/10 rounded-xl p-1">
-            {TABS.map(({ id, icon: Icon, label }) => (
+          <div className="flex gap-1 bg-neutral-200 rounded-lg overflow-clip">
+            {TABS.map(({ id, label }) => (
               <button
                 key={id}
                 onClick={() => setTab(id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-transform duration-150 active:scale-[0.97] ${
+                className={`flex-1 flex items-center justify-center py-2 text-sm ${
                   tab === id
-                    ? "bg-white text-stone-950 shadow-sm"
-                    : "text-neutral-700 hover:text-neutral-900"
+                    ? "bg-neutral-900 text-white"
+                    : "text-neutral-600 hover:bg-neutral-300 transition-colors"
                 }`}
               >
-                <HugeiconsIcon icon={Icon as IconSvgElement} size={16} />
-                <span className="hidden sm:inline">{label}</span>
+                {label}
               </button>
             ))}
           </div>
         </div>
       </motion.div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 w-full">
+      <div className="max-w-2xl mx-auto px-4 py-6 w-full flex-1 overflow-y-auto">
         {/* ── Chores Tab ── */}
         {tab === "chores" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -147,65 +129,70 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
               </h2>
               <button
                 onClick={() => setShowAddChore(true)}
-                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2 px-3 rounded-xl hover:bg-stone-800 active:scale-[0.97] transition-transform duration-150"
+                className="flex items-center gap-1.5 bg-neutral-200 text-neutral-500 text-sm py-1.5 px-3 rounded-lg hover:bg-neutral-300 transition-colors"
               >
-                <HugeiconsIcon icon={PlusSignIcon} size={16} /> Add Chore
+                Add Chore
               </button>
             </div>
 
             {chores?.length === 0 ? (
               <div className="text-center py-12 text-stone-400">
-                <HugeiconsIcon icon={CheckmarkSquare01Icon} size={40} className="mx-auto mb-2 opacity-30" />
+                <HugeiconsIcon
+                  icon={CheckmarkSquare01Icon}
+                  size={40}
+                  className="mx-auto mb-2 opacity-30"
+                />
                 <p>No chores yet. Add some!</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid border-2 border-neutral-500/25 rounded-lg overflow-clip">
                 {chores?.map((chore) => {
                   const choreIconData = chore.icon
-                    ? (HugeiconsIcons as unknown as Record<string, IconSvgElement>)[chore.icon]
+                    ? (
+                        HugeiconsIcons as unknown as Record<
+                          string,
+                          IconSvgElement
+                        >
+                      )[chore.icon]
                     : undefined;
                   return (
                     <div
                       key={chore._id}
-                      className={`rounded-4xl border-2 border-neutral-800 bg-white overflow-hidden flex flex-col cursor-pointer active:scale-[0.98] transition-transform ${!chore.isActive ? "opacity-50" : ""}`}
+                      className={`py-2 border-b-2 border-neutral-500/25 last:border-b-0 overflow-hidden flex flex-row bg-white cursor-pointer active:scale-[0.98] transition-transform ${!chore.isActive ? "opacity-50" : ""}`}
                       onClick={() => setEditingChore(chore)}
                     >
-                      {/* Illustration area */}
-                      <div className="relative h-36 flex items-center justify-center bg-white">
+                      {/* Illustration */}
+                      <div className="relative w-32 shrink-0 flex items-center justify-center bg-neutral-50">
                         {chore.imageUrl ? (
                           <Image
                             src={chore.imageUrl}
                             alt={chore.title}
                             fill
-                            className="object-contain p-4"
-                            sizes="200px"
+                            className="object-cover"
+                            sizes="80px"
                           />
                         ) : choreIconData ? (
-                          <HugeiconsIcon icon={choreIconData} size={56} className="text-stone-950/40" />
+                          <HugeiconsIcon
+                            icon={choreIconData}
+                            size={36}
+                            className="text-stone-950/40"
+                          />
                         ) : null}
-
-                        {/* Completed badge */}
-                        {completedChoreIds.has(chore._id) && (
-                          <span className="absolute top-2 left-2 text-xs bg-white/80 text-stone-700 px-2 py-0.5 rounded-full">
-                            ✓ Done
-                          </span>
-                        )}
                       </div>
 
-                      {/* Info area */}
-                      <div className="px-3 pt-2.5 pb-3 flex flex-col gap-1.5">
-                        <p className="font-medium text-stone-950 text-sm leading-tight">
+                      {/* Info */}
+                      <div className="px-3 py-2.5 flex flex-col justify-center gap-1 min-w-0">
+                        <p className="font-medium text-stone-950 text-sm leading-tight truncate">
                           {chore.title}
                         </p>
                         {chore.description && (
-                          <p className="text-xs text-stone-400 leading-tight">
+                          <p className="text-xs text-stone-400 leading-tight truncate">
                             {chore.description}
                           </p>
                         )}
-                        <div className="flex items-center gap-1 flex-wrap">
+                        <div className="flex items-center gap-1 flex-wrap text-xs text-stone-400">
                           {chore.scheduleType === "repeating" ? (
-                            <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200 flex items-center gap-1">
-                              <HugeiconsIcon icon={RepeatIcon} size={12} />
+                            <span>
                               {chore.daysOfWeek && chore.daysOfWeek.length > 0
                                 ? chore.daysOfWeek
                                     .map((d) => DAY_ABBREVS[d])
@@ -213,13 +200,10 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                                 : "every day"}
                             </span>
                           ) : chore.scheduleType === "floating" ? (
-                            <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200 flex items-center gap-1">
-                              <HugeiconsIcon icon={ShuffleIcon} size={12} />{" "}
-                              flexible
-                            </span>
+                            <span>Flexible</span>
                           ) : null}
                           {chore.assignedTo && chore.assignedTo.length > 0 && (
-                            <span className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded-full border border-stone-200">
+                            <span>
                               {chore.assignedTo.length === 1
                                 ? (kids?.find(
                                     (k) => k._id === chore.assignedTo![0],
@@ -245,7 +229,7 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
             </h2>
 
             {/* Allowance setting */}
-            <div className="bg-white rounded-4xl border-2 border-neutral-800 p-4 mb-4 flex items-center gap-3">
+            <div className="bg-white border-2 border-neutral-500/25 rounded-lg p-3 mb-4 flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-stone-950 text-sm">
                   Weekly Allowance
@@ -291,10 +275,12 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                   }}
                   className="shrink-0 flex items-center gap-2 text-sm font-semibold text-stone-950 hover:text-stone-600 transition-colors"
                 >
-                  <span>
-                    {allowanceAmount ? `$${allowanceAmount}` : "Not set"}
-                  </span>
-                  <HugeiconsIcon icon={PencilEdit01Icon} size={14} className="opacity-40" />
+                  {allowanceAmount ? `$${allowanceAmount}` : "Not set"}
+                  <HugeiconsIcon
+                    icon={PencilEdit01Icon}
+                    size={14}
+                    className="opacity-40"
+                  />
                 </button>
               )}
             </div>
@@ -305,121 +291,57 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
                 value={newKidName}
                 onChange={(e) => setNewKidName(e.target.value)}
                 placeholder="Kid's name"
-                className="flex-1 border-2 border-stone-950 rounded-xl px-4 py-2.5 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-stone-950"
+                className="flex-1 border-2 border-neutral-500/25 rounded-lg px-3 py-2 bg-white text-sm focus:outline-none focus:border-stone-950"
               />
               <button
                 type="submit"
                 disabled={!newKidName.trim()}
-                className="flex items-center gap-1 bg-stone-950 text-white text-sm py-2.5 px-3 rounded-xl hover:bg-stone-800 active:scale-[0.97] disabled:opacity-50 transition-transform duration-150"
+                className="flex items-center gap-1 bg-neutral-200 text-neutral-500 text-sm py-2 px-3 rounded-lg hover:bg-neutral-300 active:scale-[0.97] disabled:opacity-50 transition-all duration-150"
               >
                 <HugeiconsIcon icon={PlusSignIcon} size={16} /> Add
               </button>
             </form>
 
-            <div className="space-y-3">
-              {kids?.map((kid) => (
-                <div
-                  key={kid._id}
-                  className="bg-white rounded-4xl border-2 border-neutral-800 p-4 flex flex-col gap-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center shrink-0 overflow-hidden">
+            {kids?.length === 0 ? (
+              <div className="text-center py-12 text-stone-400">
+                <HugeiconsIcon
+                  icon={UserAdd01Icon}
+                  size={40}
+                  className="mx-auto mb-2 opacity-30"
+                />
+                <p>No kids yet. Add one above!</p>
+              </div>
+            ) : (
+              <div className="border-2 border-neutral-500/25 rounded-lg overflow-clip">
+                {kids?.map((kid) => (
+                  <div
+                    key={kid._id}
+                    onClick={() => setEditingKid(kid)}
+                    className="border-b-2 border-neutral-500/25 last:border-b-0 overflow-hidden flex flex-row bg-white cursor-pointer active:scale-[0.98] transition-transform"
+                  >
+                    {/* Avatar */}
+                    <div className="relative w-16 shrink-0 flex items-center justify-center bg-neutral-50">
                       {kid.avatar ? (
                         <Image
                           src={kid.avatar}
                           alt=""
-                          width={36}
-                          height={36}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
+                          sizes="64px"
                         />
                       ) : (
-                        <HugeiconsIcon icon={UserAdd01Icon} size={16} className="text-stone-400" />
+                        <HugeiconsIcon icon={UserAdd01Icon} size={24} className="text-stone-950/40" />
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      {renamingKidId === kid._id ? (
-                        <form onSubmit={handleRenameKid} className="flex gap-2">
-                          <input
-                            value={renameValue}
-                            onChange={(e) => setRenameValue(e.target.value)}
-                            className="flex-1 border-2 border-stone-950 rounded-lg px-2 py-1 text-sm focus:outline-none min-w-0"
-                            autoFocus
-                          />
-                          <button
-                            type="submit"
-                            className="text-xs bg-stone-950 text-white px-2.5 py-1 rounded-lg hover:bg-stone-800 active:scale-[0.97] transition-transform duration-150"
-                          >
-                            Save
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setRenamingKidId(null)}
-                            className="text-xs text-stone-400 px-1 hover:text-stone-700"
-                          >
-                            ✕
-                          </button>
-                        </form>
-                      ) : (
-                        <p className="font-medium text-stone-950">{kid.name}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        onClick={() => {
-                          setRenamingKidId(kid._id);
-                          setRenameValue(kid.name);
-                        }}
-                        className="text-stone-300 hover:text-stone-700 p-1 transition-colors"
-                      >
-                        <HugeiconsIcon icon={PencilEdit01Icon} size={16} />
-                      </button>
-                      <button
-                        onClick={() => removeKid({ id: kid._id })}
-                        className="text-stone-300 hover:text-red-500 p-1 transition-colors"
-                      >
-                        <HugeiconsIcon icon={Delete01Icon} size={16} />
-                      </button>
+
+                    {/* Info */}
+                    <div className="px-3 py-2.5 flex flex-col justify-center gap-1 min-w-0 flex-1">
+                      <p className="font-medium text-stone-950 text-sm">{kid.name}</p>
                     </div>
                   </div>
-                  {/* Avatar picker */}
-                  <div className="flex items-center gap-2 pl-1">
-                    <span className="text-xs text-stone-400 shrink-0">
-                      Avatar:
-                    </span>
-                    {[
-                      "/avatars/em.png",
-                      "/avatars/judah.png",
-                      "/avatars/julian.png",
-                    ].map((src) => (
-                      <button
-                        key={src}
-                        onClick={() =>
-                          setAvatar({
-                            id: kid._id,
-                            avatar: kid.avatar === src ? undefined : src,
-                          })
-                        }
-                        className={`w-8 h-8 rounded-full overflow-hidden border-2 transition-transform duration-150 active:scale-95 ${kid.avatar === src ? "border-stone-950" : "border-transparent opacity-50 hover:opacity-80"}`}
-                      >
-                        <Image
-                          src={src}
-                          alt=""
-                          width={32}
-                          height={32}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              {kids?.length === 0 && (
-                <div className="text-center py-12 text-stone-400">
-                  <HugeiconsIcon icon={UserAdd01Icon} size={40} className="mx-auto mb-2 opacity-30" />
-                  <p>No kids yet. Add one above!</p>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
       </div>
@@ -433,6 +355,10 @@ export function AdminDashboard({ userId, onSwitchUser }: AdminDashboardProps) {
             setEditingChore(null);
           }}
         />
+      )}
+
+      {editingKid && (
+        <EditKidDialog kid={editingKid} onClose={() => setEditingKid(null)} />
       )}
     </div>
   );

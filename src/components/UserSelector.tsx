@@ -187,7 +187,7 @@ export function UserSelector({ users, onSelectUser }: UserSelectorProps) {
           }}
           whileTap={{ scale: 0.97 }}
           onClick={() => setPendingAdmin(admins[0])}
-          className="flex items-center justify-center bg-neutral-200 gap-2 rounded-full py-4 w-full shrink-0 hover:bg-neutral-100 transition-colors text-neutral-500 mt-2"
+          className="flex items-center justify-center bg-neutral-200 gap-2 rounded-full py-4 w-full shrink-0 hover:bg-neutral-300 transition-colors text-neutral-500 mt-2"
         >
           <span className="font-md">Parents</span>
         </motion.button>
