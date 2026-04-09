@@ -1,4 +1,4 @@
-export interface ChorePreset {
+interface ChorePreset {
   id: string;
   label: string;
   file: string;        // path served from /public/chores/
@@ -6,10 +6,7 @@ export interface ChorePreset {
   lucideIcon: string;  // Lucide icon name for admin list view
 }
 
-// Color used for chores with no illustration assigned
-export const DEFAULT_CARD_COLOR = "#e7e5e4"; // stone-200
-
-export const CHORE_PRESETS: ChorePreset[] = [
+const CHORE_PRESETS: ChorePreset[] = [
   { id: "trash",    label: "Take Out Trash",  file: "/chores/take-out-trash.png", color: "#90bc40", lucideIcon: "Trash2"          },
   { id: "bed",      label: "Make Your Bed",   file: "/chores/make-bed.png",       color: "#f2a0b5", lucideIcon: "BedDouble"       },
   { id: "dishes",   label: "Do the Dishes",   file: "/chores/dishes.png",         color: "#7dd3fc", lucideIcon: "UtensilsCrossed" },
@@ -30,7 +27,3 @@ export function getPresetByFile(imageUrl: string | undefined): ChorePreset | und
 }
 
 export const DAY_ABBREVS = ["Su", "M", "T", "W", "Th", "F", "Sa"];
-
-export function choreColor(chore: { cardColor?: string; imageUrl?: string }): string {
-  return chore.cardColor ?? getPresetByFile(chore.imageUrl)?.color ?? DEFAULT_CARD_COLOR;
-}

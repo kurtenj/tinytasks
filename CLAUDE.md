@@ -33,39 +33,44 @@ Both `npm run dev` and `npx convex dev` must run simultaneously during developme
 Schema tables: `users`, `chores`, `completions`, `snoozed`, `settings`.
 
 Key relationships:
-- `completions` indexed by `(userId, date)` — date is always passed from the **client** as `new Date().toLocaleDateString("en-CA")` to avoid UTC timezone mismatch
+- `completions` indexed by `(userId, date)` and `(date)` — date is always passed from the **client** as `new Date().toLocaleDateString("en-CA")` to avoid UTC timezone mismatch
 - `snoozed` indexed by `(userId, date)` and `(date)` — same date convention
 - `chores.assignedTo` — optional array of user IDs; if absent, chore shows for all kids
-- `chores.scheduleType`: `"floating"` (shows every weekday) or `"repeating"` (filtered by `daysOfWeek`)
+- `chores.scheduleType`: `"floating"` (shows every weekday) or `"repeating"` (filtered by `daysOfWeek`). Defaults to `"floating"` when absent — always use `chore.scheduleType ?? "floating"` when reading it
 - `todayDow` (day-of-week 0–6) is always passed from the client for the same timezone reason
 - Chores never show on weekends (dow 0 or 6) — enforced in `listForKid` and `getKidsSummary`
 - `settings` is a key-value store; known keys: `"adminPin"`, `"allowanceAmount"`
+- Deleting a user (`users.remove`) cascades and deletes all their completions
 
 ### Key Business Rules
 - Snoozed ("do later") chores are stored server-side in the `snoozed` table (`userId`, `choreId`, `date`) — synced across all devices in real-time; day-scoped; floating chores only (not repeating, not on Friday)
 - Progress bar reflects `completed / (completed + remaining)` — snoozed chores are excluded from both numerator and denominator
 - Allowance status (`getWeeklyAllowanceStatus`): returns `"earned"` | `"lost"` | `"on_track"`. Scheduled (repeating) chores must be done on their assigned day; floating chores must be done at least once during the week. Missing a required day = `"lost"` immediately.
+- `getWeeklyProgress` treats past days differently: floating chores not done on a past day are excluded from that day's total (so skipping a floating chore doesn't penalize the past day score)
 - Week resets Monday; chores pushed past Friday disappear over the weekend and reappear fresh on Monday
 - `complete` and `snoozeChore` mutations are idempotent (check for existing record before inserting)
+- `complete` and `uncomplete` accept any date string — used by admin week history to retroactively toggle completions
 
 ### Time Helpers (`src/lib/time.ts`)
 - `getToday()` — returns `new Date().toLocaleDateString("en-CA")` (YYYY-MM-DD, client timezone). Use this everywhere a date string is needed.
 - `useLiveClock()` — formatted day + time label, updates every 10s
 - `useChoreCountdown(scheduleType)` — countdown to Friday 23:59 (floating) or end of day (repeating), updates every 60s
+- Week dates computed as: `mondayOffset = todayDow === 0 ? -6 : 1 - todayDow` — on Sunday this shows the previous week's Mon–Fri
 
 ### Chore Card Colors
-Fallback chain: `chore.cardColor` → `getPresetByFile(chore.imageUrl)?.color` → `DEFAULT_CARD_COLOR`. `cardColor` is pixel-sampled via Canvas API in `AddChoreDialog` when an image is selected. Presets in `src/lib/chorePresets.ts`.
+Fallback chain: `chore.cardColor` → `getPresetByFile(chore.imageUrl)?.color` → `"#e7e5e4"` (stone-200). `cardColor` is pixel-sampled via Canvas API in `AddChoreDialog` when an image is selected and stored on the chore document, so at render time `chore.cardColor` is usually sufficient.
 
 ### Chore Illustrations
 Images live in `public/chores/*.png`. The API route reads this directory dynamically — new images appear in the picker without code changes.
 
 ### Frontend Patterns
+- **Icons**: The entire app uses `@hugeicons/react` (`HugeiconsIcon`) with icons from `@hugeicons/core-free-icons`. Dynamic icon lookup by name: `(HugeiconsIcons as unknown as Record<string, IconSvgElement>)[iconName]`.
 - **KidDashboard card deck**: swipeable stack (max 3 visible). `useDragControls` + imperative `animate()` — card flies off first, Convex mutation fires after ~210ms to prevent spring-back. Double-tap detected via `onPointerDown` timestamp diff (< 350ms). Single-card decks spring back on swipe instead of cycling.
 - **KidDashboard layout**: `bg-olive-200` header; `bg-neutral-100` page background. When chores remain, an absolute olive background extends behind the card deck. When no chores remain, the absolute bg is hidden and the header shrinks to natural height.
 - **Color scheme**: Header/accents use `bg-olive-200` / `text-olive-500`. Cards are `bg-white` with `border border-neutral-600 shadow-lg`. Page background is `bg-neutral-100` — consistent across KidDashboard, UserSelector, AdminDashboard. CSS `--background` is set to match.
 - **Admin**: PIN stored in `settings` table under key `"adminPin"`. Single "Parents" button (uses `admins[0]`). `PinPad` has no `adminName` — all admins share the same PIN.
+- **EditKidDialog**: Contains a "This week" section showing Mon–Fri progress bars. Tapping a past day expands an inline chore checklist with three states: completed (dark pill), floating+done-another-day (muted pill + "Done Mon" label), and not done (light pill). Uses `completions.getWeekForUser` to fetch all week completions in one query.
 - **Animations**: entry springs use `stiffness: 400, damping: 28` throughout. Header slides from `y: -24`, bottom elements from `y: 24`.
-- `AdminDashboard` uses Lucide icons throughout. `ChoreAvatar` renders image thumbnail or dynamic Lucide icon by name.
 - `src/app/preview/page.tsx` — interactive animation/layout preview for dev use only.
 
 ### PWA Configuration

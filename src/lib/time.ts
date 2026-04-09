@@ -28,7 +28,7 @@ export function getToday(): string {
   return new Date().toLocaleDateString("en-CA");
 }
 
-export function formatClock(): string {
+function formatClock(): string {
   const now = new Date();
   const day = now.toLocaleDateString("en-US", { weekday: "long" });
   const time = now.toLocaleTimeString("en-US", {
