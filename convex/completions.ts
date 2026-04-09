@@ -67,6 +67,23 @@ export const uncomplete = mutation({
   },
 });
 
+export const getWeekForUser = query({
+  args: { userId: v.id("users"), weekDates: v.array(v.string()) },
+  handler: async (ctx, { userId, weekDates }) => {
+    const perDay = await Promise.all(
+      weekDates.map((date) =>
+        ctx.db
+          .query("completions")
+          .withIndex("by_user_date", (q) =>
+            q.eq("userId", userId).eq("date", date)
+          )
+          .collect()
+      )
+    );
+    return perDay.flat();
+  },
+});
+
 export const resetDay = mutation({
   args: { today: v.string() },
   handler: async (ctx, { today }) => {
